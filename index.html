@@ -1,0 +1,4271 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ArduinoBlocks Studio — Visual Block Coding for Arduino</title>
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%2300979D'/%3E%3Crect x='18' y='18' width='28' height='28' rx='5' fill='none' stroke='white' stroke-width='4'/%3E%3Ccircle cx='32' cy='32' r='5' fill='white'/%3E%3Cpath d='M24 10v8M32 10v8M40 10v8M24 46v8M32 46v8M40 46v8M10 24h8M10 32h8M10 40h8M46 24h8M46 32h8M46 40h8' stroke='white' stroke-width='3.5' stroke-linecap='round'/%3E%3C/svg%3E" />
+  
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  
+  <!-- Google Fonts: Inter & JetBrains Mono -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+
+  <!-- Google Blockly (Pinned stable CDN version for reliable custom generator behavior) -->
+  <script src="https://unpkg.com/blockly@10.4.3/blockly.min.js"></script>
+
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+            mono: ['JetBrains Mono', 'monospace'],
+          },
+          colors: {
+            arduino: {
+              teal: '#00979D',
+              darkTeal: '#005C5F',
+              orange: '#E47128',
+            }
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    /* Custom Scrollbars & Blockly Dark Theme Overrides */
+    body {
+      font-family: 'Inter', sans-serif;
+      overflow: hidden;
+      user-select: none;
+    }
+    
+    .code-scroll::-webkit-scrollbar {
+      width: 8px;
+      height: 8px;
+    }
+    .code-scroll::-webkit-scrollbar-track {
+      background: #0f172a;
+    }
+    .code-scroll::-webkit-scrollbar-thumb {
+      background: #334155;
+      border-radius: 4px;
+    }
+    .code-scroll::-webkit-scrollbar-thumb:hover {
+      background: #475569;
+    }
+
+    /* Customize Blockly Toolbox to match modern IDE aesthetics */
+    .blocklyToolboxDiv {
+      background-color: #111827 !important;
+      border-right: 1px solid #1f2937 !important;
+      color: #f3f4f6 !important;
+      padding-top: 8px !important;
+    }
+    .blocklyTreeRow {
+      padding: 6px 12px !important;
+      margin: 3px 6px !important;
+      border-radius: 8px !important;
+      height: auto !important;
+      line-height: 22px !important;
+      transition: all 0.15s ease;
+    }
+    .blocklyTreeRow:hover {
+      background-color: #1f2937 !important;
+    }
+    .blocklyTreeSelected {
+      background-color: #00979D !important;
+    }
+    .blocklyTreeLabel {
+      font-family: 'Inter', sans-serif !important;
+      font-size: 13px !important;
+      font-weight: 500 !important;
+      color: #e5e7eb !important;
+    }
+    .blocklyFlyoutBackground {
+      fill: #1e293b !important;
+      fill-opacity: 0.96 !important;
+    }
+    .blocklyMainBackground {
+      stroke: none !important;
+    }
+    /* C++ Syntax Highlighting Classes */
+    .tok-directive { color: #c084fc; font-weight: 600; }
+    .tok-type { color: #38bdf8; font-weight: 600; }
+    .tok-keyword { color: #f472b6; font-weight: 600; }
+    .tok-func { color: #fde047; }
+    .tok-num { color: #fb923c; }
+    .tok-str { color: #4ade80; }
+    .tok-comment { color: #64748b; font-style: italic; }
+    .tok-const { color: #2dd4bf; font-weight: 600; }
+  </style>
+</head>
+<body class="bg-slate-950 text-slate-100 h-screen flex flex-col">
+
+  <!-- TOP NAVBAR -->
+  <header class="h-14 bg-slate-900 border-b border-slate-800 px-4 flex items-center justify-between shrink-0 z-20">
+    <!-- Brand & Title -->
+    <div class="flex items-center gap-3">
+      <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-arduino-teal to-emerald-600 flex items-center justify-center shadow-lg shadow-teal-900/40">
+        <i class="fa-solid fa-microchip text-white text-lg"></i>
+      </div>
+      <div>
+        <div class="flex items-center gap-2">
+          <h1 class="font-bold text-base tracking-tight text-white">ArduinoBlocks <span class="text-teal-400">Studio</span></h1>
+          <span class="text-[10px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded-full bg-teal-500/15 text-teal-300 border border-teal-500/30">Universal Multi-Board + Library IDE</span>
+        </div>
+        <p class="text-[11px] text-slate-400 hidden sm:block">Dynamic Board Pinouts, Custom Library Importer &amp; Real-Time C++ Transpiler</p>
+      </div>
+    </div>
+
+    <!-- Center Controls: Board & Examples -->
+    <div class="flex items-center gap-2 sm:gap-2.5">
+      <!-- Board Selector -->
+      <div class="flex items-center bg-slate-800/90 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs">
+        <i class="fa-solid fa-microchip text-teal-400 mr-2"></i>
+        <span class="text-slate-400 mr-1.5 hidden xl:inline">Target Board:</span>
+        <select id="boardSelect" onchange="onBoardChange()" class="bg-transparent text-slate-100 font-semibold focus:outline-none cursor-pointer">
+          <option value="uno" class="bg-slate-900">Arduino Uno / Nano (ATmega328P)</option>
+          <option value="mega" class="bg-slate-900">Arduino Mega 2560 (ATmega2560)</option>
+          <option value="esp32" class="bg-slate-900">ESP32 DevKit V1 (WiFi + BLE)</option>
+          <option value="esp8266" class="bg-slate-900">NodeMCU ESP8266 (WiFi)</option>
+          <option value="xiao_nrf52" class="bg-slate-900">Seeed XIAO nRF52840 (BLE 5.0)</option>
+          <option value="pico" class="bg-slate-900">Raspberry Pi Pico (RP2040)</option>
+        </select>
+      </div>
+
+      <!-- Preset Examples Selector -->
+      <div class="flex items-center bg-slate-800/90 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs">
+        <i class="fa-solid fa-bolt text-amber-400 mr-2"></i>
+        <span class="text-slate-400 mr-1.5 hidden xl:inline">Preset:</span>
+        <select id="exampleSelect" onchange="loadSelectedExample(this.value)" class="bg-transparent text-slate-100 font-medium focus:outline-none cursor-pointer">
+          <option value="radar" class="bg-slate-900">1. Ultrasonic Smart Gate + Servo</option>
+          <option value="interrupt_demo" class="bg-slate-900">2. Hardware Interrupt (ISR) + Volatile Counter</option>
+          <option value="esp32_iot" class="bg-slate-900">3. ESP32 WiFi + MQTT IoT Telemetry</option>
+          <option value="i2c_hub" class="bg-slate-900">4. Multi-Library I2C Hub (LCD + MPU6050)</option>
+          <option value="custom_lib" class="bg-slate-900">5. Custom Imported Library (.h) Demo</option>
+          <option value="blink" class="bg-slate-900">6. Classic Blink LED</option>
+        </select>
+      </div>
+
+      <!-- Undo / Redo / Reset -->
+      <div class="flex items-center gap-1">
+        <button onclick="workspace && workspace.undo(false)" title="Undo (Ctrl+Z)" class="px-2 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 text-xs transition">
+          <i class="fa-solid fa-undo"></i>
+        </button>
+        <button onclick="workspace && workspace.undo(true)" title="Redo (Ctrl+Y)" class="px-2 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 text-xs transition">
+          <i class="fa-solid fa-redo"></i>
+        </button>
+        <button onclick="resetWorkspace()" title="Reset to blank Setup & Loop" class="px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-rose-950/60 text-slate-300 hover:text-rose-300 border border-slate-700 hover:border-rose-700/50 text-xs font-medium transition flex items-center gap-1.5">
+          <i class="fa-solid fa-trash-can"></i>
+          <span class="hidden 2xl:inline">Reset</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Action Buttons -->
+    <div class="flex items-center gap-1.5 sm:gap-2">
+      <input id="projectFileInput" type="file" accept=".ablocks,.json,.xml" class="hidden" onchange="handleImportProjectFile(event)" />
+      <button onclick="exportProjectFile()" title="Save project & libraries (.ablocks)" class="px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 text-xs font-medium transition flex items-center gap-1.5">
+        <i class="fa-solid fa-floppy-disk text-sky-400"></i>
+        <span class="hidden 2xl:inline">Save</span>
+      </button>
+      <button onclick="document.getElementById('projectFileInput').click()" title="Open saved .ablocks project" class="px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 text-xs font-medium transition flex items-center gap-1.5">
+        <i class="fa-regular fa-folder-open text-amber-400"></i>
+        <span class="hidden 2xl:inline">Open</span>
+      </button>
+      <button onclick="openLibraryModal()" class="px-3 py-1.5 rounded-lg bg-purple-500/15 hover:bg-purple-500/25 text-purple-300 border border-purple-500/30 text-xs font-semibold transition flex items-center gap-1.5">
+        <i class="fa-solid fa-book-medical"></i>
+        <span class="hidden md:inline">Library Manager</span>
+        <span id="libCountPill" class="px-1.5 py-0.2 rounded-full bg-purple-500/30 text-purple-200 text-[10px]">0</span>
+      </button>
+
+      <button onclick="openSimulatorModal()" class="px-3 py-1.5 rounded-lg bg-amber-500/15 hover:bg-amber-500/25 text-amber-300 border border-amber-500/30 text-xs font-semibold transition flex items-center gap-1.5">
+        <i class="fa-solid fa-circle-nodes"></i>
+        <span class="hidden lg:inline">Components</span>
+      </button>
+
+      <button onclick="copyArduinoCode()" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-100 border border-slate-700 text-xs font-semibold transition flex items-center gap-1.5">
+        <i class="fa-regular fa-copy text-teal-400"></i>
+        <span>Copy</span>
+      </button>
+
+      <button onclick="downloadInoFile()" class="px-3.5 py-1.5 rounded-lg bg-gradient-to-r from-arduino-teal to-teal-500 hover:from-teal-500 hover:to-teal-400 text-white text-xs font-semibold shadow-md shadow-teal-950 transition flex items-center gap-1.5">
+        <i class="fa-solid fa-download"></i>
+        <span class="hidden sm:inline">.ino</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- HARDWARE COMPONENT & BOARD SPECS BAR -->
+  <div class="bg-slate-900/90 border-b border-slate-800 px-4 py-1.5 flex items-center justify-between text-xs shrink-0 gap-4">
+    <div class="flex items-center gap-2 overflow-x-auto no-scrollbar py-0.5">
+      <!-- Board Architecture Spec Pill -->
+      <div id="boardSpecsBadge" class="px-2.5 py-0.5 rounded-md bg-teal-950/80 border border-teal-700/50 text-teal-300 font-mono text-[11px] flex items-center gap-2 shrink-0">
+        <i class="fa-solid fa-cpu"></i>
+        <span id="boardSpecText">ATmega328P · 5V · 10-bit ADC (0-1023) · 14 Digital / 6 Analog</span>
+      </div>
+
+      <span class="text-slate-700">|</span>
+
+      <span class="text-[11px] font-semibold uppercase tracking-wider text-slate-400 flex items-center gap-1.5 shrink-0">
+        <i class="fa-solid fa-plug-circle-check text-amber-400"></i> Components:
+      </span>
+      <div id="componentPillsContainer" class="flex items-center gap-1.5">
+        <!-- Dynamically populated component badges -->
+      </div>
+      <button onclick="openSimulatorModal()" class="px-2 py-0.5 rounded bg-amber-500/10 hover:bg-amber-500/20 text-amber-300 border border-amber-500/30 text-[11px] font-medium transition shrink-0">
+        + Component
+      </button>
+      <button onclick="openLibraryModal()" class="px-2 py-0.5 rounded bg-purple-500/10 hover:bg-purple-500/20 text-purple-300 border border-purple-500/30 text-[11px] font-medium transition shrink-0">
+        + Import .h Library
+      </button>
+    </div>
+
+    <div class="hidden xl:flex items-center gap-3 text-[11px] text-slate-400 shrink-0">
+      <span><i class="fa-solid fa-wand-magic-sparkles text-purple-400 mr-1"></i>Board-aware <code class="text-slate-300">#include</code> &amp; pinout adaptation active</span>
+    </div>
+  </div>
+
+  <!-- MAIN SPLIT-SCREEN IDE WORKSPACE -->
+  <main class="flex-1 flex flex-col lg:flex-row overflow-hidden relative">
+    
+    <!-- LEFT / CENTER: GOOGLE BLOCKLY WORKSPACE -->
+    <div class="flex-1 h-full relative min-h-[380px]">
+      <div id="blocklyArea" class="w-full h-full"></div>
+      <div id="blocklyDiv" class="absolute inset-0"></div>
+
+      <!-- Floating Quick-Tip Pill -->
+      <div class="absolute bottom-3 left-3 z-10 pointer-events-none hidden sm:flex items-center gap-2 bg-slate-900/90 backdrop-blur border border-slate-700/80 px-3 py-1.5 rounded-full text-[11px] text-slate-300 shadow-lg">
+        <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+        <span id="workspaceStatusHint">Pin dropdowns &amp; libraries automatically adapt to the selected board</span>
+      </div>
+    </div>
+
+    <!-- RIGHT PANEL: LIVE ARDUINO C++ CODE & HARDWARE INSPECTOR -->
+    <aside class="w-full lg:w-[470px] xl:w-[540px] bg-slate-900 border-t lg:border-t-0 lg:border-l border-slate-800 flex flex-col shrink-0 h-[44%] lg:h-full">
+      
+      <!-- Code Header Bar with Tabs (.ino vs platformio.ini) -->
+      <div class="px-3 py-2 bg-slate-900 border-b border-slate-800 flex items-center justify-between">
+        <div class="flex items-center gap-1.5">
+          <button id="tabBtnIno" onclick="switchCodeTab('ino')" class="px-2.5 py-1 rounded-md bg-teal-500/15 text-teal-300 border border-teal-500/30 font-mono text-xs font-semibold flex items-center gap-1.5 transition">
+            <span class="w-2 h-2 rounded-full bg-teal-400"></span>
+            sketch_arduino.ino
+          </button>
+          <button id="tabBtnPio" onclick="switchCodeTab('pio')" class="px-2.5 py-1 rounded-md bg-slate-800/70 hover:bg-slate-800 text-slate-400 font-mono text-xs font-medium flex items-center gap-1.5 transition">
+            <i class="fa-solid fa-gear text-purple-400 text-[11px]"></i>
+            platformio.ini
+          </button>
+        </div>
+        <div class="flex items-center gap-2">
+          <button id="serialDrawerBtn" onclick="toggleSerialMonitor()" title="Live USB Web Serial Monitor (Chrome / Edge)" class="px-2 py-0.5 rounded bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 font-mono text-[11px] font-medium flex items-center gap-1.5 transition">
+            <span id="serialStatusDot" class="w-1.5 h-1.5 rounded-full bg-slate-500"></span>
+            Serial
+          </button>
+          <span id="lineCountBadge" class="text-[10px] font-mono px-2 py-0.5 rounded bg-slate-800 text-slate-400 border border-slate-700">0 lines</span>
+        </div>
+      </div>
+
+      <!-- Syntax Highlighted Code Output -->
+      <div class="flex-1 bg-slate-950 overflow-auto code-scroll p-4 font-mono text-xs leading-relaxed select-text relative">
+        <pre id="arduinoCodeOutput" class="text-slate-200 whitespace-pre"></pre>
+      </div>
+
+      <!-- Collapsible Web Serial Monitor Drawer -->
+      <div id="serialMonitorDrawer" class="hidden border-t border-slate-800 bg-slate-950 flex-col h-48 shrink-0">
+        <div class="px-3 py-1.5 bg-slate-900/90 border-b border-slate-800 flex items-center justify-between text-[11px]">
+          <div class="flex items-center gap-2">
+            <i class="fa-solid fa-terminal text-emerald-400"></i>
+            <span class="font-semibold text-slate-200">USB Serial Monitor</span>
+            <select id="serialBaudSelect" class="bg-slate-800 border border-slate-700 rounded px-1.5 py-0.5 font-mono text-[10px] text-slate-200">
+              <option value="9600">9600 baud</option>
+              <option value="115200" selected>115200 baud</option>
+              <option value="57600">57600 baud</option>
+            </select>
+          </div>
+          <div class="flex items-center gap-1.5">
+            <button id="serialConnectBtn" onclick="toggleSerialConnection()" class="px-2 py-0.5 rounded bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-[10px] transition">
+              Connect USB
+            </button>
+            <button onclick="document.getElementById('serialOutputLog').textContent = ''" class="px-2 py-0.5 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 text-[10px]">
+              Clear
+            </button>
+          </div>
+        </div>
+        <pre id="serialOutputLog" class="flex-1 p-2.5 overflow-auto code-scroll font-mono text-[11px] text-emerald-300/90 whitespace-pre-wrap select-text">Ready. Click "Connect USB" in Chrome or Edge to stream live Serial output from your board.
+</pre>
+        <div class="p-1.5 bg-slate-900 border-t border-slate-800 flex gap-1.5">
+          <input id="serialTxInput" type="text" placeholder="Send command over Serial (Enter)..." onkeydown="if(event.key==='Enter') sendSerialLine()" class="flex-1 bg-slate-950 border border-slate-700 rounded px-2 py-1 font-mono text-[11px] text-slate-100 focus:outline-none focus:border-emerald-500" />
+          <button onclick="sendSerialLine()" class="px-2.5 py-1 rounded bg-slate-800 hover:bg-slate-700 text-slate-200 text-[11px] font-semibold">Send</button>
+        </div>
+      </div>
+
+      <!-- Bottom Hardware & Resource Inspector (Pinout & Auto-Setup Summary) -->
+      <div class="bg-slate-900 border-t border-slate-800 p-3.5 shrink-0">
+        <div class="flex items-center justify-between mb-2">
+          <span class="text-[11px] font-semibold uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
+            <i class="fa-solid fa-microchip text-teal-400"></i> Active Board &amp; Library Inspector
+          </span>
+          <span id="activePinCount" class="text-[11px] font-medium text-teal-400">0 Active Resources</span>
+        </div>
+
+        <div class="grid grid-cols-3 gap-2 text-[11px]">
+          <!-- Libraries Box -->
+          <div class="bg-slate-950/90 border border-slate-800 rounded-lg p-2">
+            <div class="text-slate-400 font-medium mb-1 flex items-center gap-1">
+              <i class="fa-solid fa-book-bookmark text-purple-400"></i> Header Includes
+            </div>
+            <div id="inspectorIncludes" class="font-mono text-[10px] text-purple-300 space-y-0.5 max-h-16 overflow-y-auto">
+              <span class="text-slate-600">None required</span>
+            </div>
+          </div>
+
+          <!-- Active Pins Box -->
+          <div class="bg-slate-950/90 border border-slate-800 rounded-lg p-2">
+            <div class="text-slate-400 font-medium mb-1 flex items-center gap-1">
+              <i class="fa-solid fa-thumbtack text-amber-400"></i> Setup &amp; Bus Init
+            </div>
+            <div id="inspectorSetup" class="font-mono text-[10px] text-amber-300 space-y-0.5 max-h-16 overflow-y-auto">
+              <span class="text-slate-600">No pins configured</span>
+            </div>
+          </div>
+
+          <!-- Global Objects Box -->
+          <div class="bg-slate-950/90 border border-slate-800 rounded-lg p-2">
+            <div class="text-slate-400 font-medium mb-1 flex items-center gap-1">
+              <i class="fa-solid fa-cube text-sky-400"></i> Global Instances
+            </div>
+            <div id="inspectorDefs" class="font-mono text-[10px] text-sky-300 space-y-0.5 max-h-16 overflow-y-auto">
+              <span class="text-slate-600">No global objects</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </aside>
+  </main>
+
+  <!-- ==========================================================================
+       LIBRARY MANAGER & CUSTOM .H IMPORTER MODAL
+       ========================================================================== -->
+  <div id="libraryModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 hidden items-center justify-center p-4">
+    <div class="bg-slate-900 border border-slate-700 rounded-2xl max-w-4xl w-full shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
+      <!-- Modal Header -->
+      <div class="px-5 py-4 border-b border-slate-800 flex items-center justify-between shrink-0">
+        <div class="flex items-center gap-3">
+          <div class="w-9 h-9 rounded-xl bg-purple-500/20 border border-purple-500/40 flex items-center justify-center text-purple-300">
+            <i class="fa-solid fa-book-medical text-lg"></i>
+          </div>
+          <div>
+            <h3 class="font-bold text-base text-white">Arduino &amp; IoT Library Manager + Custom <code class="text-purple-300">.h</code> Importer</h3>
+            <p class="text-xs text-slate-400">Toggle official libraries or import any third-party Arduino <code class="text-slate-300">.h</code> header &amp; class methods into blocks</p>
+          </div>
+        </div>
+        <button onclick="closeLibraryModal()" class="text-slate-400 hover:text-white p-1.5">
+          <i class="fa-solid fa-xmark text-lg"></i>
+        </button>
+      </div>
+
+      <!-- Modal Body -->
+      <div class="p-5 overflow-y-auto space-y-6 flex-1">
+        
+        <!-- SECTION 1: ONE-CLICK POPULAR ARDUINO LIBRARIES CATALOG -->
+        <div>
+          <div class="flex items-center justify-between mb-3">
+            <h4 class="text-xs font-bold uppercase tracking-wider text-teal-400 flex items-center gap-2">
+              <i class="fa-solid fa-boxes-stacked"></i> 1. Curated Hardware &amp; Protocol Libraries (Click to Toggle Include &amp; Init)
+            </h4>
+            <span class="text-[11px] text-slate-400">Automatically injects <code class="text-slate-300">#include</code>, global object &amp; <code class="text-slate-300">setup()</code> init</span>
+          </div>
+          <div id="curatedLibrariesGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2.5">
+            <!-- Populated dynamically via JS -->
+          </div>
+        </div>
+
+        <!-- SECTION 2: IMPORT ANY CUSTOM .H LIBRARY / HEADER PARSER -->
+        <div class="bg-slate-950 border border-slate-800 rounded-xl p-4 space-y-4">
+          <div class="flex items-center justify-between">
+            <div>
+              <h4 class="text-xs font-bold uppercase tracking-wider text-purple-400 flex items-center gap-2">
+                <i class="fa-solid fa-file-code"></i> 2. Import Any Custom Library / <code class="text-purple-300">.h</code> Header
+              </h4>
+              <p class="text-[11px] text-slate-400 mt-0.5">Define a custom library header, object constructor, and methods—or paste a C++ class header snippet to register it in the workspace.</p>
+            </div>
+            <button onclick="fillSampleCustomLib()" class="px-2.5 py-1 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 text-[11px] border border-slate-700 transition">
+              Load BME280 Example
+            </button>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+            <div>
+              <label class="text-[10px] uppercase font-semibold text-slate-400 block mb-1">Header File Name (.h)</label>
+              <input id="customLibHeader" type="text" placeholder="e.g. FastLED.h or PZEM004Tv30.h" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs font-mono text-white focus:outline-none focus:border-purple-500" />
+            </div>
+            <div>
+              <label class="text-[10px] uppercase font-semibold text-slate-400 block mb-1">Global Object / Declaration</label>
+              <input id="customLibObject" type="text" placeholder="e.g. CRGB leds[30];" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs font-mono text-white focus:outline-none focus:border-purple-500" />
+            </div>
+            <div>
+              <label class="text-[10px] uppercase font-semibold text-slate-400 block mb-1">setup() Initialization Line</label>
+              <input id="customLibSetup" type="text" placeholder="e.g. FastLED.addLeds<NEOPIXEL, 6>(leds, 30);" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs font-mono text-white focus:outline-none focus:border-purple-500" />
+            </div>
+            <div>
+              <label class="text-[10px] uppercase font-semibold text-slate-400 block mb-1">Methods (Comma-Separated)</label>
+              <input id="customLibMethod" type="text" placeholder="e.g. FastLED.show(), FastLED.clear()" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs font-mono text-white focus:outline-none focus:border-purple-500" />
+            </div>
+          </div>
+
+          <div class="flex flex-wrap items-center justify-between gap-2 pt-1">
+            <div class="text-[11px] text-slate-400">
+              <i class="fa-solid fa-circle-info text-purple-400 mr-1"></i>
+              Imported libraries automatically get their own <strong>Action &amp; Value blocks</strong> inside the <strong>"📚 Libraries &amp; Custom .h"</strong> category!
+            </div>
+            <button onclick="importCustomHeaderLibrary()" class="px-4 py-2 rounded-lg bg-purple-600 hover:bg-purple-500 text-white font-semibold text-xs transition shadow-lg shadow-purple-950/50">
+              + Import Library &amp; Generate Blocks
+            </button>
+          </div>
+
+          <!-- Raw .h C++ Header Code Auto-Parser -->
+          <div class="pt-3 border-t border-slate-800/80">
+            <div class="flex items-center justify-between mb-1.5">
+              <label class="text-[10px] uppercase font-bold tracking-wider text-teal-400 flex items-center gap-1.5">
+                <i class="fa-solid fa-wand-magic-sparkles"></i> Optional: Paste Raw C++ <code class="text-teal-300">.h</code> Header File to Auto-Extract Methods into Blocks
+              </label>
+              <button onclick="pasteSampleHeaderCode()" class="text-[11px] text-teal-400 hover:text-teal-300 underline">
+                Paste Sample .h Class
+              </button>
+            </div>
+            <div class="flex gap-2">
+              <textarea id="rawHeaderPasteBox" rows="3" placeholder="Paste C++ class definition from any .h file (e.g. class Adafruit_BME280 { public: bool begin(); float readTemperature(); float readPressure(); }; )" class="flex-1 bg-slate-900 border border-slate-700 rounded-lg p-2 text-[11px] font-mono text-slate-200 focus:outline-none focus:border-teal-500"></textarea>
+              <button onclick="parseRawCppHeader()" class="px-3 py-2 rounded-lg bg-teal-600/20 hover:bg-teal-600/30 border border-teal-500/40 text-teal-300 text-xs font-semibold transition shrink-0 flex flex-col items-center justify-center gap-1">
+                <i class="fa-solid fa-microchip text-base"></i>
+                <span>Auto-Parse .h</span>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Registered Custom Libraries List -->
+        <div>
+          <div class="flex items-center justify-between mb-2">
+            <span class="text-xs font-semibold text-slate-400">Imported Custom Libraries &amp; Generated Block Bindings</span>
+            <span class="text-[11px] text-purple-300"><i class="fa-solid fa-arrow-pointer mr-1"></i>Click <strong>"+ Action Block"</strong> or open <strong>📚 Libraries &amp; Custom .h</strong> in the left sidebar</span>
+          </div>
+          <div id="customLibsListContainer" class="space-y-1.5"></div>
+        </div>
+
+      </div>
+
+      <!-- Modal Footer -->
+      <div class="px-5 py-3 bg-slate-950 border-t border-slate-800 flex items-center justify-between shrink-0">
+        <span class="text-[11px] text-slate-400">Tip: You can also drag raw <strong>#include</strong> and <strong>C++ Method Call</strong> blocks directly from the <em>Libraries &amp; Custom .h</em> category.</span>
+        <button onclick="closeLibraryModal()" class="px-4 py-1.5 rounded-lg bg-teal-600 hover:bg-teal-500 text-xs font-semibold text-white">
+          Apply &amp; Return to Blocks
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MIT APP INVENTOR STYLE "HARDWARE COMPONENT DESIGNER" MODAL -->
+  <div id="componentModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 hidden items-center justify-center p-4">
+    <div class="bg-slate-900 border border-slate-700 rounded-2xl max-w-lg w-full shadow-2xl overflow-hidden">
+      <div class="px-5 py-4 border-b border-slate-800 flex items-center justify-between">
+        <div class="flex items-center gap-2.5">
+          <div class="w-8 h-8 rounded-lg bg-amber-500/20 border border-amber-500/40 flex items-center justify-center text-amber-300">
+            <i class="fa-solid fa-layer-group"></i>
+          </div>
+          <div>
+            <h3 class="font-bold text-sm text-white">Hardware Component Designer</h3>
+            <p class="text-[11px] text-slate-400">Define named components (like MIT App Inventor) to use in your Named Component blocks</p>
+          </div>
+        </div>
+        <button onclick="closeSimulatorModal()" class="text-slate-400 hover:text-white p-1">
+          <i class="fa-solid fa-xmark text-lg"></i>
+        </button>
+      </div>
+
+      <div class="p-5 space-y-4">
+        <!-- Add New Component Form -->
+        <div class="bg-slate-950 border border-slate-800 rounded-xl p-3.5 space-y-3">
+          <div class="text-xs font-semibold text-slate-300">Add New Named Hardware Component</div>
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+            <div>
+              <label class="text-[10px] uppercase text-slate-400 block mb-1">Component Name</label>
+              <input id="newCompName" type="text" placeholder="e.g. Alarm_Buzzer" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-white focus:outline-none focus:border-teal-500" />
+            </div>
+            <div>
+              <label class="text-[10px] uppercase text-slate-400 block mb-1">Hardware Type</label>
+              <select id="newCompType" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-white focus:outline-none">
+                <option value="LED">LED Indicator (Output)</option>
+                <option value="RELAY">Relay Module (Output)</option>
+                <option value="BUZZER">Active Buzzer (Output)</option>
+                <option value="BUTTON">Push Button (Input_Pullup)</option>
+              </select>
+            </div>
+            <div>
+              <label class="text-[10px] uppercase text-slate-400 block mb-1">Arduino Pin</label>
+              <select id="newCompPin" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-white focus:outline-none">
+                <option value="2">Pin D2</option>
+                <option value="3">Pin D3 (PWM)</option>
+                <option value="4">Pin D4</option>
+                <option value="5">Pin D5 (PWM)</option>
+                <option value="6">Pin D6 (PWM)</option>
+                <option value="7">Pin D7</option>
+                <option value="8">Pin D8</option>
+                <option value="12">Pin D12</option>
+                <option value="13" selected>Pin D13 (Built-in LED)</option>
+              </select>
+            </div>
+          </div>
+          <button onclick="addNamedComponent()" class="w-full py-2 rounded-lg bg-teal-600 hover:bg-teal-500 text-white font-semibold text-xs transition">
+            + Register Named Component in Toolbox
+          </button>
+        </div>
+
+        <!-- Existing Components List -->
+        <div>
+          <div class="text-xs font-semibold text-slate-400 mb-2">Registered Components (Available in "Named Components" Category)</div>
+          <div id="modalComponentsList" class="space-y-1.5 max-h-48 overflow-y-auto pr-1"></div>
+        </div>
+      </div>
+
+      <div class="px-5 py-3 bg-slate-950 border-t border-slate-800 flex justify-end">
+        <button onclick="closeSimulatorModal()" class="px-4 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs font-semibold text-slate-200">
+          Done
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- TOAST NOTIFICATION -->
+  <div id="toastBanner" class="fixed bottom-5 right-5 z-50 pointer-events-none opacity-0 translate-y-2 transition-all duration-200 bg-slate-900 border border-teal-500/50 text-slate-100 px-4 py-2.5 rounded-xl shadow-2xl flex items-center gap-2.5 text-xs font-medium">
+    <i class="fa-solid fa-circle-check text-teal-400 text-sm"></i>
+    <span id="toastMessage">Copied to clipboard!</span>
+  </div>
+
+  <!-- ==========================================================================
+       BLOCKLY TOOLBOX XML DEFINITION
+       ========================================================================== -->
+  <xml id="toolbox" style="display: none">
+    <category name="⚡ Structure" colour="#00979D">
+      <block type="arduino_setup_loop"></block>
+      <block type="arduino_comment">
+        <field name="TEXT">Check sensor and trigger actuator</field>
+      </block>
+      <block type="arduino_raw_statement">
+        <field name="CODE">// Custom C++ statement;</field>
+      </block>
+      <block type="arduino_raw_expression">
+        <field name="EXPR">analogRead(A0) * (5.0 / 1023.0)</field>
+      </block>
+      <block type="arduino_raw_global">
+        <field name="CODE">#define DEBUG_MODE 1</field>
+      </block>
+    </category>
+
+    <category name="⚡ Interrupts (ISR)" colour="#E11D48">
+      <block type="arduino_attach_interrupt">
+        <field name="MODE">FALLING</field>
+        <field name="ISR_NAME">onPulseDetected</field>
+      </block>
+      <block type="arduino_detach_interrupt"></block>
+      <block type="arduino_interrupts_ctrl">
+        <field name="ACTION">noInterrupts()</field>
+      </block>
+      <block type="arduino_volatile_var">
+        <field name="TYPE">long</field>
+        <field name="VAR">pulseCount</field>
+        <value name="VALUE">
+          <shadow type="math_number"><field name="NUM">0</field></shadow>
+        </value>
+      </block>
+    </category>
+
+    <category name="🛠️ Custom Functions" colour="#D946EF">
+      <block type="arduino_func_def_void">
+        <field name="NAME">myCustomTask</field>
+        <field name="PARAMS">int speed, bool dir</field>
+      </block>
+      <block type="arduino_func_def_return">
+        <field name="TYPE">float</field>
+        <field name="NAME">calculateAverage</field>
+        <field name="PARAMS">float a, float b</field>
+        <value name="RETURN_VAL">
+          <shadow type="math_number"><field name="NUM">0</field></shadow>
+        </value>
+      </block>
+      <block type="arduino_func_call_stmt">
+        <field name="NAME">myCustomTask</field>
+        <field name="ARGS">255, true</field>
+      </block>
+      <block type="arduino_func_call_val">
+        <field name="NAME">calculateAverage</field>
+        <field name="ARGS">12.5, 18.0</field>
+      </block>
+      <block type="arduino_return_stmt">
+        <value name="VAL">
+          <shadow type="math_number"><field name="NUM">0</field></shadow>
+        </value>
+      </block>
+    </category>
+
+    <category name="📚 Libraries &amp; Custom .h" colour="#9333EA" custom="CUSTOM_LIBRARIES_FLYOUT"></category>
+
+    <category name="🧩 Named Components" colour="#D97706">
+      <block type="component_set_state">
+        <field name="STATE">HIGH</field>
+      </block>
+      <block type="component_toggle"></block>
+      <block type="component_read_button"></block>
+    </category>
+
+    <category name="🔌 Digital &amp; Analog I/O" colour="#0284C7">
+      <block type="arduino_digital_write">
+        <field name="STATE">HIGH</field>
+      </block>
+      <block type="arduino_digital_read">
+        <field name="PULLUP">TRUE</field>
+      </block>
+      <block type="arduino_analog_read"></block>
+      <block type="arduino_analog_write">
+        <value name="VALUE">
+          <shadow type="math_number">
+            <field name="NUM">128</field>
+          </shadow>
+        </value>
+      </block>
+      <block type="arduino_tone">
+        <value name="FREQ">
+          <shadow type="math_number">
+            <field name="NUM">1000</field>
+          </shadow>
+        </value>
+        <value name="DURATION">
+          <shadow type="math_number">
+            <field name="NUM">300</field>
+          </shadow>
+        </value>
+      </block>
+      <block type="arduino_no_tone"></block>
+      <block type="arduino_pulse_in">
+        <field name="STATE">HIGH</field>
+      </block>
+      <block type="arduino_shift_out">
+        <field name="ORDER">MSBFIRST</field>
+        <value name="VAL">
+          <shadow type="math_number"><field name="NUM">255</field></shadow>
+        </value>
+      </block>
+    </category>
+
+    <category name="📡 Sensors &amp; Actuators" colour="#7C3AED">
+      <block type="sensor_ultrasonic_cm">
+        <field name="TRIG">10</field>
+        <field name="ECHO">11</field>
+      </block>
+      <block type="actuator_servo_write">
+        <value name="ANGLE">
+          <shadow type="math_number">
+            <field name="NUM">90</field>
+          </shadow>
+        </value>
+      </block>
+      <block type="sensor_dht_read">
+        <field name="TYPE">DHT11</field>
+        <field name="METRIC">readTemperature()</field>
+      </block>
+      <block type="sensor_mpu6050_read">
+        <field name="AXIS">getAccelerationX()</field>
+      </block>
+      <block type="display_lcd_i2c_print">
+        <field name="ADDR">0x27</field>
+        <value name="COL"><shadow type="math_number"><field name="NUM">0</field></shadow></value>
+        <value name="ROW"><shadow type="math_number"><field name="NUM">0</field></shadow></value>
+        <value name="TEXT"><shadow type="text"><field name="TEXT">ArduinoBlocks</field></shadow></value>
+      </block>
+      <block type="display_oled_print">
+        <value name="TEXT">
+          <shadow type="text">
+            <field name="TEXT">System Ready</field>
+          </shadow>
+        </value>
+        <value name="X">
+          <shadow type="math_number"><field name="NUM">0</field></shadow>
+        </value>
+        <value name="Y">
+          <shadow type="math_number"><field name="NUM">10</field></shadow>
+        </value>
+      </block>
+    </category>
+
+    <category name="🌐 WiFi, BLE &amp; IoT" colour="#0D9488">
+      <block type="iot_wifi_connect">
+        <field name="SSID">MyLabWiFi</field>
+        <field name="PASS">secret123</field>
+      </block>
+      <block type="iot_mqtt_publish">
+        <field name="BROKER">broker.hivemq.com</field>
+        <field name="TOPIC">arduino/telemetry</field>
+        <value name="PAYLOAD">
+          <shadow type="text">
+            <field name="TEXT">24.5</field>
+          </shadow>
+        </value>
+      </block>
+      <block type="iot_http_get">
+        <field name="URL">http://api.thingspeak.com/update?api_key=XYZ&amp;field1=10</field>
+      </block>
+    </category>
+
+    <category name="⏱️ Time &amp; Delays" colour="#E1116A">
+      <block type="arduino_delay_ms">
+        <value name="MS">
+          <shadow type="math_number">
+            <field name="NUM">1000</field>
+          </shadow>
+        </value>
+      </block>
+      <block type="arduino_delay_us">
+        <value name="US">
+          <shadow type="math_number">
+            <field name="NUM">50</field>
+          </shadow>
+        </value>
+      </block>
+      <block type="arduino_millis"></block>
+      <block type="arduino_micros"></block>
+      <block type="arduino_nonblocking_timer">
+        <field name="TIMER_ID">timer1</field>
+        <value name="INTERVAL">
+          <shadow type="math_number"><field name="NUM">1000</field></shadow>
+        </value>
+      </block>
+    </category>
+
+    <category name="🖥️ Serial, I2C, SPI &amp; EEPROM" colour="#059669">
+      <block type="arduino_serial_print">
+        <field name="NEWLINE">println</field>
+        <value name="CONTENT">
+          <shadow type="text">
+            <field name="TEXT">Distance (cm): </field>
+          </shadow>
+        </value>
+      </block>
+      <block type="arduino_serial_available"></block>
+      <block type="arduino_serial_read_string"></block>
+      <block type="arduino_eeprom_write">
+        <value name="ADDR"><shadow type="math_number"><field name="NUM">0</field></shadow></value>
+        <value name="VAL"><shadow type="math_number"><field name="NUM">42</field></shadow></value>
+      </block>
+      <block type="arduino_eeprom_read">
+        <value name="ADDR"><shadow type="math_number"><field name="NUM">0</field></shadow></value>
+      </block>
+      <block type="arduino_i2c_write">
+        <field name="ADDR">0x27</field>
+        <value name="DATA"><shadow type="math_number"><field name="NUM">1</field></shadow></value>
+      </block>
+      <block type="arduino_spi_transfer">
+        <value name="DATA"><shadow type="math_number"><field name="NUM">0xFF</field></shadow></value>
+      </block>
+    </category>
+
+    <sep></sep>
+
+    <category name="🔀 Logic &amp; Bitwise" colour="#4F46E5">
+      <block type="controls_if"></block>
+      <block type="logic_compare"></block>
+      <block type="logic_operation"></block>
+      <block type="logic_negate"></block>
+      <block type="logic_boolean"></block>
+      <block type="arduino_switch_case">
+        <field name="CASE0">1</field>
+        <field name="CASE1">2</field>
+      </block>
+      <block type="arduino_bitwise_op">
+        <field name="OP">&amp;</field>
+        <value name="A"><shadow type="math_number"><field name="NUM">255</field></shadow></value>
+        <value name="B"><shadow type="math_number"><field name="NUM">15</field></shadow></value>
+      </block>
+      <block type="arduino_bit_manip">
+        <field name="FUNC">bitRead</field>
+        <value name="X"><shadow type="math_number"><field name="NUM">12</field></shadow></value>
+        <value name="N"><shadow type="math_number"><field name="NUM">0</field></shadow></value>
+      </block>
+    </category>
+
+    <category name="🔁 Loops &amp; Control" colour="#10B981">
+      <block type="controls_repeat_ext">
+        <value name="TIMES">
+          <shadow type="math_number">
+            <field name="NUM">5</field>
+          </shadow>
+        </value>
+      </block>
+      <block type="arduino_for_custom">
+        <field name="VAR">i</field>
+        <value name="FROM"><shadow type="math_number"><field name="NUM">0</field></shadow></value>
+        <value name="TO"><shadow type="math_number"><field name="NUM">10</field></shadow></value>
+        <value name="STEP"><shadow type="math_number"><field name="NUM">1</field></shadow></value>
+      </block>
+      <block type="controls_whileUntil"></block>
+      <block type="arduino_loop_flow">
+        <field name="STAT">break</field>
+      </block>
+    </category>
+
+    <category name="🧮 Math, Random &amp; Cast" colour="#2563EB">
+      <block type="math_number">
+        <field name="NUM">15</field>
+      </block>
+      <block type="math_arithmetic"></block>
+      <block type="arduino_math_map">
+        <value name="VAL"><shadow type="math_number"><field name="NUM">512</field></shadow></value>
+        <value name="FROMLOW"><shadow type="math_number"><field name="NUM">0</field></shadow></value>
+        <value name="FROMHIGH"><shadow type="math_number"><field name="NUM">1023</field></shadow></value>
+        <value name="TOLOW"><shadow type="math_number"><field name="NUM">0</field></shadow></value>
+        <value name="TOHIGH"><shadow type="math_number"><field name="NUM">180</field></shadow></value>
+      </block>
+      <block type="arduino_math_constrain">
+        <value name="VAL"><shadow type="math_number"><field name="NUM">150</field></shadow></value>
+        <value name="LOW"><shadow type="math_number"><field name="NUM">0</field></shadow></value>
+        <value name="HIGH"><shadow type="math_number"><field name="NUM">255</field></shadow></value>
+      </block>
+      <block type="arduino_math_random">
+        <value name="MIN"><shadow type="math_number"><field name="NUM">0</field></shadow></value>
+        <value name="MAX"><shadow type="math_number"><field name="NUM">100</field></shadow></value>
+      </block>
+      <block type="arduino_type_cast">
+        <field name="TYPE">float</field>
+      </block>
+      <block type="text">
+        <field name="TEXT">Hello Arduino</field>
+      </block>
+    </category>
+
+    <category name="📦 Variables, Arrays &amp; Structs" colour="#DB2777">
+      <block type="arduino_var_declare">
+        <field name="TYPE">int</field>
+        <field name="VAR">distanceCm</field>
+        <value name="VALUE">
+          <shadow type="math_number">
+            <field name="NUM">0</field>
+          </shadow>
+        </value>
+      </block>
+      <block type="arduino_var_set">
+        <field name="VAR">distanceCm</field>
+        <value name="VALUE">
+          <shadow type="math_number">
+            <field name="NUM">10</field>
+          </shadow>
+        </value>
+      </block>
+      <block type="arduino_var_get">
+        <field name="VAR">distanceCm</field>
+      </block>
+      <block type="arduino_array_declare">
+        <field name="TYPE">int</field>
+        <field name="NAME">sensorPins</field>
+        <field name="SIZE">4</field>
+        <field name="VALUES">2, 3, 4, 5</field>
+      </block>
+      <block type="arduino_array_get">
+        <field name="NAME">sensorPins</field>
+        <value name="INDEX"><shadow type="math_number"><field name="NUM">0</field></shadow></value>
+      </block>
+      <block type="arduino_array_set">
+        <field name="NAME">sensorPins</field>
+        <value name="INDEX"><shadow type="math_number"><field name="NUM">0</field></shadow></value>
+        <value name="VAL"><shadow type="math_number"><field name="NUM">100</field></shadow></value>
+      </block>
+      <block type="arduino_struct_define">
+        <field name="NAME">TelemetryPacket</field>
+        <field name="FIELDS">int id; float temp; bool alarm;</field>
+      </block>
+    </category>
+  </xml>
+
+  <!-- ==========================================================================
+       APPLICATION & ARDUINO GENERATOR LOGIC
+       ========================================================================== -->
+  <script>
+    /***************************************************************************
+     * 0. MULTI-BOARD HARDWARE PROFILES & DYNAMIC PINOUT ENGINE
+     ***************************************************************************/
+    const BOARD_PROFILES = {
+      uno: {
+        id: 'uno',
+        name: 'Arduino Uno / Nano (ATmega328P)',
+        mcu: 'ATmega328P',
+        voltage: '5V',
+        adcBits: 10,
+        adcMax: 1023,
+        pioEnv: 'uno',
+        pioPlatform: 'atmelavr',
+        pioBoard: 'uno',
+        servoHeader: 'Servo.h',
+        wifiHeader: 'WiFi.h',
+        baudRate: 9600,
+        specsSummary: 'ATmega328P · 5V · 10-bit ADC (0-1023) · 14 Digital / 6 Analog',
+        digitalPins: [
+          ['D2', '2'], ['D3 (PWM)', '3'], ['D4', '4'], ['D5 (PWM)', '5'],
+          ['D6 (PWM)', '6'], ['D7', '7'], ['D8', '8'], ['D9 (PWM)', '9'],
+          ['D10 (PWM)', '10'], ['D11 (PWM)', '11'], ['D12', '12'], ['D13 (LED_BUILTIN)', '13']
+        ],
+        pwmPins: [
+          ['Pin 3 (PWM)', '3'], ['Pin 5 (PWM)', '5'], ['Pin 6 (PWM)', '6'],
+          ['Pin 9 (PWM)', '9'], ['Pin 10 (PWM)', '10'], ['Pin 11 (PWM)', '11']
+        ],
+        analogPins: [
+          ['A0', 'A0'], ['A1', 'A1'], ['A2', 'A2'], ['A3', 'A3'], ['A4 (SDA)', 'A4'], ['A5 (SCL)', 'A5']
+        ],
+        interruptPins: [
+          ['D2 (INT0)', '2'], ['D3 (INT1)', '3']
+        ]
+      },
+      mega: {
+        id: 'mega',
+        name: 'Arduino Mega 2560 (ATmega2560)',
+        mcu: 'ATmega2560',
+        voltage: '5V',
+        adcBits: 10,
+        adcMax: 1023,
+        pioEnv: 'megaatmega2560',
+        pioPlatform: 'atmelavr',
+        pioBoard: 'megaatmega2560',
+        servoHeader: 'Servo.h',
+        wifiHeader: 'WiFi.h',
+        baudRate: 115200,
+        specsSummary: 'ATmega2560 · 5V · 10-bit ADC · 54 Digital / 16 Analog / 4 UARTs',
+        digitalPins: [
+          ['D2 (PWM)', '2'], ['D3 (PWM)', '3'], ['D4 (PWM)', '4'], ['D5 (PWM)', '5'],
+          ['D6 (PWM)', '6'], ['D7 (PWM)', '7'], ['D8 (PWM)', '8'], ['D9 (PWM)', '9'],
+          ['D10 (PWM)', '10'], ['D11 (PWM)', '11'], ['D12 (PWM)', '12'], ['D13 (LED)', '13'],
+          ['D18 (TX1)', '18'], ['D19 (RX1)', '19'], ['D20 (SDA)', '20'], ['D21 (SCL)', '21'],
+          ['D22', '22'], ['D24', '24'], ['D26', '26'], ['D28', '28'], ['D30', '30'], ['D52 (SCK)', '52']
+        ],
+        pwmPins: [
+          ['Pin 2 (PWM)', '2'], ['Pin 3 (PWM)', '3'], ['Pin 4 (PWM)', '4'], ['Pin 5 (PWM)', '5'],
+          ['Pin 6 (PWM)', '6'], ['Pin 7 (PWM)', '7'], ['Pin 8 (PWM)', '8'], ['Pin 9 (PWM)', '9'],
+          ['Pin 10 (PWM)', '10'], ['Pin 11 (PWM)', '11'], ['Pin 12 (PWM)', '12'], ['Pin 13 (PWM)', '13']
+        ],
+        analogPins: [
+          ['A0', 'A0'], ['A1', 'A1'], ['A2', 'A2'], ['A3', 'A3'], ['A4', 'A4'], ['A5', 'A5'],
+          ['A6', 'A6'], ['A7', 'A7'], ['A8', 'A8'], ['A9', 'A9'], ['A10', 'A10'], ['A15', 'A15']
+        ],
+        interruptPins: [
+          ['D2 (INT4)', '2'], ['D3 (INT5)', '3'], ['D18 (INT3)', '18'],
+          ['D19 (INT2)', '19'], ['D20 (INT1 / SDA)', '20'], ['D21 (INT0 / SCL)', '21']
+        ]
+      },
+      esp32: {
+        id: 'esp32',
+        name: 'ESP32 DevKit V1 (Xtensa Dual-Core)',
+        mcu: 'ESP32-WROOM-32',
+        voltage: '3.3V',
+        adcBits: 12,
+        adcMax: 4095,
+        pioEnv: 'esp32dev',
+        pioPlatform: 'espressif32',
+        pioBoard: 'esp32dev',
+        servoHeader: 'ESP32Servo.h',
+        wifiHeader: 'WiFi.h',
+        baudRate: 115200,
+        specsSummary: 'ESP32 Dual-Core 240MHz · 3.3V · 12-bit ADC (0-4095) · WiFi + BLE',
+        digitalPins: [
+          ['GPIO 2 (Built-in LED)', '2'], ['GPIO 4', '4'], ['GPIO 5', '5'], ['GPIO 12', '12'],
+          ['GPIO 13', '13'], ['GPIO 14', '14'], ['GPIO 15', '15'], ['GPIO 16 (RX2)', '16'],
+          ['GPIO 17 (TX2)', '17'], ['GPIO 18 (SCK)', '18'], ['GPIO 19 (MISO)', '19'],
+          ['GPIO 21 (SDA)', '21'], ['GPIO 22 (SCL)', '22'], ['GPIO 23 (MOSI)', '23'],
+          ['GPIO 25 (DAC1)', '25'], ['GPIO 26 (DAC2)', '26'], ['GPIO 27', '27'], ['GPIO 32', '32'], ['GPIO 33', '33']
+        ],
+        pwmPins: [
+          ['GPIO 2 (LEDC)', '2'], ['GPIO 4 (LEDC)', '4'], ['GPIO 5 (LEDC)', '5'],
+          ['GPIO 13 (LEDC)', '13'], ['GPIO 14 (LEDC)', '14'], ['GPIO 18 (LEDC)', '18'],
+          ['GPIO 19 (LEDC)', '19'], ['GPIO 25 (LEDC)', '25'], ['GPIO 26 (LEDC)', '26'], ['GPIO 27 (LEDC)', '27']
+        ],
+        analogPins: [
+          ['GPIO 34 (ADC1_CH6)', '34'], ['GPIO 35 (ADC1_CH7)', '35'],
+          ['GPIO 36 / VP (ADC1_CH0)', '36'], ['GPIO 39 / VN (ADC1_CH3)', '39'],
+          ['GPIO 32 (ADC1_CH4)', '32'], ['GPIO 33 (ADC1_CH5)', '33']
+        ],
+        interruptPins: [
+          ['GPIO 4 (Any GPIO ISR)', '4'], ['GPIO 5 (Any GPIO ISR)', '5'], ['GPIO 12 (Any GPIO ISR)', '12'],
+          ['GPIO 13 (Any GPIO ISR)', '13'], ['GPIO 14 (Any GPIO ISR)', '14'], ['GPIO 15 (Any GPIO ISR)', '15'],
+          ['GPIO 18 (Any GPIO ISR)', '18'], ['GPIO 19 (Any GPIO ISR)', '19'], ['GPIO 21 (Any GPIO ISR)', '21'],
+          ['GPIO 22 (Any GPIO ISR)', '22'], ['GPIO 23 (Any GPIO ISR)', '23'], ['GPIO 25 (Any GPIO ISR)', '25'],
+          ['GPIO 26 (Any GPIO ISR)', '26'], ['GPIO 27 (Any GPIO ISR)', '27'], ['GPIO 32 (Any GPIO ISR)', '32'],
+          ['GPIO 33 (Any GPIO ISR)', '33'], ['GPIO 34 (Input Only ISR)', '34'], ['GPIO 35 (Input Only ISR)', '35']
+        ]
+      },
+      esp8266: {
+        id: 'esp8266',
+        name: 'NodeMCU ESP8266 (ESP-12E)',
+        mcu: 'ESP8266EX',
+        voltage: '3.3V',
+        adcBits: 10,
+        adcMax: 1023,
+        pioEnv: 'nodemcuv2',
+        pioPlatform: 'espressif8266',
+        pioBoard: 'nodemcuv2',
+        servoHeader: 'Servo.h',
+        wifiHeader: 'ESP8266WiFi.h',
+        baudRate: 115200,
+        specsSummary: 'ESP8266 80MHz · 3.3V · 10-bit ADC (A0) · Built-in 2.4GHz WiFi',
+        digitalPins: [
+          ['D0 (GPIO16)', '16'], ['D1 (GPIO5 / SCL)', '5'], ['D2 (GPIO4 / SDA)', '4'],
+          ['D3 (GPIO0)', '0'], ['D4 (GPIO2 / LED)', '2'], ['D5 (GPIO14 / SCK)', '14'],
+          ['D6 (GPIO12 / MISO)', '12'], ['D7 (GPIO13 / MOSI)', '13'], ['D8 (GPIO15 / CS)', '15']
+        ],
+        pwmPins: [
+          ['D1 (GPIO5 PWM)', '5'], ['D2 (GPIO4 PWM)', '4'], ['D5 (GPIO14 PWM)', '14'],
+          ['D6 (GPIO12 PWM)', '12'], ['D7 (GPIO13 PWM)', '13']
+        ],
+        analogPins: [
+          ['A0 (ADC0 0-3.3V)', 'A0']
+        ],
+        interruptPins: [
+          ['D1 (GPIO5 ISR)', '5'], ['D2 (GPIO4 ISR)', '4'], ['D5 (GPIO14 ISR)', '14'],
+          ['D6 (GPIO12 ISR)', '12'], ['D7 (GPIO13 ISR)', '13']
+        ]
+      },
+      xiao_nrf52: {
+        id: 'xiao_nrf52',
+        name: 'Seeed Studio XIAO nRF52840 Sense',
+        mcu: 'nRF52840 Cortex-M4F',
+        voltage: '3.3V',
+        adcBits: 12,
+        adcMax: 4095,
+        pioEnv: 'seeed_xiao_ble_sense',
+        pioPlatform: 'nordicnrf52',
+        pioBoard: 'seeed_xiao_ble_sense',
+        servoHeader: 'Servo.h',
+        wifiHeader: 'ArduinoBLE.h',
+        baudRate: 115200,
+        specsSummary: 'nRF52840 64MHz · 3.3V · BLE 5.0 · Onboard IMU & PDM Mic · 11 Pins',
+        digitalPins: [
+          ['D0 (A0)', 'D0'], ['D1 (A1)', 'D1'], ['D2 (A2)', 'D2'], ['D3 (A3)', 'D3'],
+          ['D4 (SDA)', 'D4'], ['D5 (SCL)', 'D5'], ['D6 (TX)', 'D6'], ['D7 (RX)', 'D7'],
+          ['D8 (SCK)', 'D8'], ['D9 (MISO)', 'D9'], ['D10 (MOSI)', 'D10'], ['LED_BUILTIN', 'LED_BUILTIN']
+        ],
+        pwmPins: [
+          ['D0 (PWM)', 'D0'], ['D1 (PWM)', 'D1'], ['D2 (PWM)', 'D2'], ['D3 (PWM)', 'D3'],
+          ['D6 (PWM)', 'D6'], ['D8 (PWM)', 'D8'], ['D10 (PWM)', 'D10']
+        ],
+        analogPins: [
+          ['A0', 'A0'], ['A1', 'A1'], ['A2', 'A2'], ['A3', 'A3'], ['A4', 'A4'], ['A5', 'A5']
+        ],
+        interruptPins: [
+          ['D0 (ISR)', 'D0'], ['D1 (ISR)', 'D1'], ['D2 (ISR)', 'D2'], ['D3 (ISR)', 'D3'],
+          ['D6 (ISR)', 'D6'], ['D7 (ISR)', 'D7'], ['D8 (ISR)', 'D8'], ['D9 (ISR)', 'D9'], ['D10 (ISR)', 'D10']
+        ]
+      },
+      pico: {
+        id: 'pico',
+        name: 'Raspberry Pi Pico (RP2040)',
+        mcu: 'RP2040 Dual Cortex-M0+',
+        voltage: '3.3V',
+        adcBits: 12,
+        adcMax: 4095,
+        pioEnv: 'pico',
+        pioPlatform: 'raspberrypi',
+        pioBoard: 'pico',
+        servoHeader: 'Servo.h',
+        wifiHeader: 'WiFi.h',
+        baudRate: 115200,
+        specsSummary: 'RP2040 133MHz · 3.3V · 12-bit ADC · 26 Multifunction GPIO + PIO',
+        digitalPins: [
+          ['GP0 (TX0)', '0'], ['GP1 (RX0)', '1'], ['GP2', '2'], ['GP3', '3'],
+          ['GP4 (SDA0)', '4'], ['GP5 (SCL0)', '5'], ['GP6', '6'], ['GP7', '7'],
+          ['GP8', '8'], ['GP9', '9'], ['GP10', '10'], ['GP11', '11'],
+          ['GP14', '14'], ['GP15', '15'], ['GP16 (MISO)', '16'], ['GP17 (CS)', '17'],
+          ['GP18 (SCK)', '18'], ['GP19 (MOSI)', '19'], ['GP25 (Onboard LED)', '25']
+        ],
+        pwmPins: [
+          ['GP0 (PWM)', '0'], ['GP2 (PWM)', '2'], ['GP4 (PWM)', '4'], ['GP6 (PWM)', '6'],
+          ['GP9 (PWM)', '9'], ['GP14 (PWM)', '14'], ['GP15 (PWM)', '15'], ['GP25 (LED)', '25']
+        ],
+        analogPins: [
+          ['GP26 (ADC0)', '26'], ['GP27 (ADC1)', '27'], ['GP28 (ADC2)', '28']
+        ],
+        interruptPins: [
+          ['GP0 (ISR)', '0'], ['GP1 (ISR)', '1'], ['GP2 (ISR)', '2'], ['GP3 (ISR)', '3'],
+          ['GP4 (ISR)', '4'], ['GP5 (ISR)', '5'], ['GP6 (ISR)', '6'], ['GP7 (ISR)', '7'],
+          ['GP14 (ISR)', '14'], ['GP15 (ISR)', '15']
+        ]
+      }
+    };
+
+    function getActiveBoardProfile() {
+      const key = document.getElementById('boardSelect')?.value || 'uno';
+      return BOARD_PROFILES[key] || BOARD_PROFILES.uno;
+    }
+
+    function getBoardDigitalPins() {
+      return getActiveBoardProfile().digitalPins;
+    }
+
+    function getBoardPwmPins() {
+      return getActiveBoardProfile().pwmPins;
+    }
+
+    function getBoardAnalogPins() {
+      return getActiveBoardProfile().analogPins;
+    }
+
+    function getBoardInterruptPins() {
+      return getActiveBoardProfile().interruptPins || getActiveBoardProfile().digitalPins;
+    }
+
+    /***************************************************************************
+     * 0.5 LIBRARY MANAGER & CUSTOM .H HEADER REGISTRY
+     ***************************************************************************/
+    const CURATED_LIBRARIES = [
+      {
+        id: 'wire',
+        name: 'Wire (I2C Bus)',
+        header: '#include <Wire.h>',
+        pioDep: '',
+        def: '',
+        setup: 'Wire.begin();',
+        desc: 'Standard Two-Wire I2C interface (SDA/SCL)',
+        enabled: false
+      },
+      {
+        id: 'spi',
+        name: 'SPI Bus',
+        header: '#include <SPI.h>',
+        pioDep: '',
+        def: '',
+        setup: 'SPI.begin();',
+        desc: 'High-speed synchronous Serial Peripheral Interface',
+        enabled: false
+      },
+      {
+        id: 'lcd_i2c',
+        name: 'LiquidCrystal_I2C',
+        header: '#include <LiquidCrystal_I2C.h>',
+        pioDep: 'marcoschwartz/LiquidCrystal_I2C@^1.1.4',
+        def: 'LiquidCrystal_I2C lcd(0x27, 16, 2);',
+        setup: 'lcd.init();\n  lcd.backlight();',
+        desc: '16x2 / 20x4 Character LCD over I2C backpack',
+        enabled: false
+      },
+      {
+        id: 'mpu6050',
+        name: 'MPU6050 6-Axis IMU',
+        header: '#include <Wire.h>\n#include <MPU6050.h>',
+        pioDep: 'electroniccats/MPU6050@^1.3.0',
+        def: 'MPU6050 mpu;',
+        setup: 'Wire.begin();\n  mpu.initialize();',
+        desc: '3-Axis Accelerometer + 3-Axis Gyroscope over I2C',
+        enabled: false
+      },
+      {
+        id: 'vl53l0x',
+        name: 'VL53L0X Laser ToF',
+        header: '#include <Wire.h>\n#include <VL53L0X.h>',
+        pioDep: 'pololu/VL53L0X@^1.3.1',
+        def: 'VL53L0X tofSensor;',
+        setup: 'Wire.begin();\n  tofSensor.setTimeout(500);\n  tofSensor.init();',
+        desc: 'Time-of-Flight micro LiDAR distance sensor',
+        enabled: false
+      },
+      {
+        id: 'mfrc522',
+        name: 'MFRC522 RFID Reader',
+        header: '#include <SPI.h>\n#include <MFRC522.h>',
+        pioDep: 'miguelbalboa/MFRC522@^1.4.11',
+        def: 'MFRC522 rfid(10, 9); // SS_PIN=10, RST_PIN=9',
+        setup: 'SPI.begin();\n  rfid.PCD_Init();',
+        desc: '13.56MHz RFID Smart Card & Keyfob reader',
+        enabled: false
+      },
+      {
+        id: 'rf24',
+        name: 'nRF24L01+ Radio (RF24)',
+        header: '#include <SPI.h>\n#include <RF24.h>',
+        pioDep: 'nrf24/RF24@^1.4.8',
+        def: 'RF24 radio(7, 8); // CE=7, CSN=8',
+        setup: 'radio.begin();\n  radio.setPALevel(RF24_PA_LOW);',
+        desc: '2.4GHz ISM band wireless transceiver library',
+        enabled: false
+      },
+      {
+        id: 'pubsub',
+        name: 'PubSubClient (MQTT)',
+        header: '#include <PubSubClient.h>',
+        pioDep: 'knolleary/PubSubClient@^2.8',
+        def: 'WiFiClient espClient;\nPubSubClient mqttClient(espClient);',
+        setup: '',
+        desc: 'Lightweight MQTT publish/subscribe IoT messaging',
+        enabled: false
+      },
+      {
+        id: 'max30105',
+        name: 'MAX30102 / MAX30105 Oximeter',
+        header: '#include <Wire.h>\n#include <MAX30105.h>',
+        pioDep: 'sparkfun/SparkFun MAX3010x Pulse and Proximity Sensor Library@^1.1.2',
+        def: 'MAX30105 particleSensor;',
+        setup: 'particleSensor.begin(Wire, I2C_SPEED_FAST);\n  particleSensor.setup();',
+        desc: 'Heart-rate & SpO2 optical pulse oximeter',
+        enabled: false
+      }
+    ];
+
+    let customImportedLibraries = [
+      {
+        header: 'FastLED.h',
+        objectDecl: 'CRGB leds[30];',
+        setupCall: 'FastLED.addLeds<NEOPIXEL, 6>(leds, 30);',
+        defaultMethod: 'FastLED.show()',
+        methods: ['FastLED.show()', 'FastLED.clear()', 'FastLED.setBrightness(128)']
+      },
+      {
+        header: 'PZEM004Tv30.h',
+        objectDecl: 'PZEM004Tv30 pzem(11, 12);',
+        setupCall: '// PZEM Energy Monitor Ready',
+        defaultMethod: 'pzem.voltage()',
+        methods: ['pzem.voltage()', 'pzem.current()', 'pzem.power()', 'pzem.energy()', 'pzem.frequency()']
+      }
+    ];
+
+    function getAllImportedLibraryMethodsDropdown() {
+      const options = [];
+      // 1. Add all methods from user-imported custom libraries
+      customImportedLibraries.forEach((lib, idx) => {
+        const methodList = (lib.methods && lib.methods.length > 0) ? lib.methods : [lib.defaultMethod];
+        methodList.forEach(m => {
+          options.push([`[${lib.header}]  ${m}`, `${idx}:::${m}`]);
+        });
+      });
+      // 2. Also add helper methods from any Curated Libraries toggled ON
+      const curatedMethodMap = {
+        wire: ['Wire.requestFrom(0x27, 2)', 'Wire.available()', 'Wire.read()'],
+        spi: ['SPI.transfer(0x00)', 'SPI.endTransaction()'],
+        lcd_i2c: ['lcd.clear()', 'lcd.home()', 'lcd.backlight()', 'lcd.noBacklight()'],
+        mpu6050: ['mpu.getAccelerationX()', 'mpu.getAccelerationY()', 'mpu.getAccelerationZ()', 'mpu.getRotationX()'],
+        vl53l0x: ['tofSensor.readRangeSingleMillimeters()', 'tofSensor.timeoutOccurred()'],
+        mfrc522: ['rfid.PICC_IsNewCardPresent()', 'rfid.PICC_ReadCardSerial()', 'rfid.PICC_HaltA()'],
+        rf24: ['radio.available()', 'radio.write(&data, sizeof(data))', 'radio.startListening()'],
+        pubsub: ['mqttClient.connected()', 'mqttClient.loop()'],
+        max30105: ['particleSensor.getIR()', 'particleSensor.getRed()', 'particleSensor.getTemperature()']
+      };
+      CURATED_LIBRARIES.forEach(cLib => {
+        if (cLib.enabled && curatedMethodMap[cLib.id]) {
+          curatedMethodMap[cLib.id].forEach(m => {
+            options.push([`[${cLib.name}]  ${m}`, `CURATED_${cLib.id}:::${m}`]);
+          });
+        }
+      });
+
+      if (options.length === 0) {
+        return [['[FastLED.h]  FastLED.show()', '0:::FastLED.show()']];
+      }
+      return options;
+    }
+
+    function renderLibraryManagerUI() {
+      const grid = document.getElementById('curatedLibrariesGrid');
+      const customList = document.getElementById('customLibsListContainer');
+      if (!grid || !customList) return;
+
+      grid.innerHTML = '';
+      CURATED_LIBRARIES.forEach((lib, idx) => {
+        const card = document.createElement('div');
+        card.onclick = () => toggleCuratedLibrary(idx);
+        card.className = `cursor-pointer rounded-xl p-3 border transition flex flex-col justify-between ${
+          lib.enabled
+            ? 'bg-purple-950/50 border-purple-500/70 shadow-md shadow-purple-950/40'
+            : 'bg-slate-950/90 border-slate-800 hover:border-slate-700'
+        }`;
+        card.innerHTML = `
+          <div>
+            <div class="flex items-center justify-between mb-1">
+              <span class="font-semibold text-xs text-white">${lib.name}</span>
+              <span class="text-[10px] px-2 py-0.5 rounded-full font-semibold ${
+                lib.enabled ? 'bg-purple-500 text-white' : 'bg-slate-800 text-slate-400'
+              }">${lib.enabled ? '✓ Active in Toolbox' : '+ Enable'}</span>
+            </div>
+            <p class="text-[11px] text-slate-400 mb-2">${lib.desc}</p>
+          </div>
+          <div class="font-mono text-[10px] text-purple-300 bg-slate-900/90 px-2 py-1 rounded border border-slate-800 truncate">
+            ${lib.header.split('\n').pop().replace(/</g, '&lt;').replace(/>/g, '&gt;')}
+          </div>
+        `;
+        grid.appendChild(card);
+      });
+
+      customList.innerHTML = '';
+      customImportedLibraries.forEach((cLib, idx) => {
+        const methodsCount = (cLib.methods && cLib.methods.length) ? cLib.methods.length : 1;
+        const row = document.createElement('div');
+        row.className = 'flex flex-wrap items-center justify-between gap-2 bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-xs';
+        row.innerHTML = `
+          <div class="flex flex-wrap items-center gap-2 font-mono text-[11px]">
+            <span class="text-purple-300 font-semibold">#include &lt;${cLib.header}&gt;</span>
+            <span class="text-slate-600">|</span>
+            <span class="text-sky-300">${cLib.objectDecl || 'Static Class'}</span>
+            <span class="text-slate-600">|</span>
+            <span class="px-1.5 py-0.5 rounded bg-purple-500/15 text-purple-300 border border-purple-500/30 text-[10px]">
+              ${methodsCount} block method${methodsCount > 1 ? 's' : ''} ready
+            </span>
+          </div>
+          <div class="flex items-center gap-1.5">
+            <button onclick="insertImportedLibBlockToWorkspace(${idx}, 'stmt')" class="px-2 py-1 rounded bg-purple-600/25 hover:bg-purple-600/40 text-purple-200 border border-purple-500/40 text-[11px] font-medium transition">
+              + Action Block
+            </button>
+            <button onclick="insertImportedLibBlockToWorkspace(${idx}, 'val')" class="px-2 py-1 rounded bg-teal-600/25 hover:bg-teal-600/40 text-teal-200 border border-teal-500/40 text-[11px] font-medium transition">
+              + Value Block
+            </button>
+            ${customImportedLibraries.length > 1 ? `
+              <button onclick="removeCustomLibrary(${idx})" class="text-slate-500 hover:text-rose-400 px-1.5">
+                <i class="fa-solid fa-trash-can"></i>
+              </button>
+            ` : ''}
+          </div>
+        `;
+        customList.appendChild(row);
+      });
+
+      const activeCount = CURATED_LIBRARIES.filter(l => l.enabled).length + customImportedLibraries.length;
+      const pill = document.getElementById('libCountPill');
+      if (pill) pill.textContent = String(activeCount);
+    }
+
+    function toggleCuratedLibrary(index) {
+      CURATED_LIBRARIES[index].enabled = !CURATED_LIBRARIES[index].enabled;
+      renderLibraryManagerUI();
+      updateArduinoCode();
+      const lib = CURATED_LIBRARIES[index];
+      showToast(`${lib.name} ${lib.enabled ? 'enabled! Open "📚 Libraries & Custom .h" in the toolbox to grab its blocks.' : 'removed from sketch'}`);
+    }
+
+    function fillSampleCustomLib() {
+      document.getElementById('customLibHeader').value = 'Adafruit_BME280.h';
+      document.getElementById('customLibObject').value = 'Adafruit_BME280 bme;';
+      document.getElementById('customLibSetup').value = 'bme.begin(0x76);';
+      document.getElementById('customLibMethod').value = 'bme.readTemperature(), bme.readHumidity(), bme.readPressure()';
+    }
+
+    function pasteSampleHeaderCode() {
+      document.getElementById('rawHeaderPasteBox').value =
+`// Sample ServoDriver.h
+class Adafruit_PWMServoDriver {
+public:
+  Adafruit_PWMServoDriver();
+  bool begin(uint8_t prescale = 0);
+  void setPWMFreq(float freq);
+  void setPWM(uint8_t num, uint16_t on, uint16_t off);
+  uint8_t readPrescale(void);
+};`;
+    }
+
+    function parseRawCppHeader() {
+      const raw = document.getElementById('rawHeaderPasteBox').value.trim();
+      if (!raw) {
+        showToast('Paste a C++ class or .h header snippet first!');
+        return;
+      }
+
+      const classMatch = raw.match(/class\s+([A-Za-z_][A-Za-z0-9_]*)/);
+      const className = classMatch ? classMatch[1] : 'CustomDevice';
+      const instanceName = className.replace(/^Adafruit_|^SparkFun_|^DFRobot_/i, '').toLowerCase() + '1';
+
+      const methodRegex = /(?:void|bool|int|long|float|double|uint8_t|uint16_t|uint32_t|int16_t|String|char\s*\*)\s+([A-Za-z_][A-Za-z0-9_]*)\s*\(([^)]*)\)/g;
+      const extractedMethods = [];
+      let match;
+      let hasBegin = false;
+
+      while ((match = methodRegex.exec(raw)) !== null) {
+        const fnName = match[1];
+        const paramsRaw = match[2].trim();
+        if (fnName === className) continue;
+        if (fnName === 'begin' || fnName === 'init' || fnName === 'initialize') {
+          hasBegin = true;
+          continue;
+        }
+        let sampleArgs = '';
+        if (paramsRaw && paramsRaw !== 'void') {
+          const parts = paramsRaw.split(',');
+          sampleArgs = parts.map((p, i) => {
+            if (p.includes('=')) return p.split('=')[1].trim();
+            if (/float|double/.test(p)) return '10.0';
+            if (/char|String/.test(p)) return '"text"';
+            return String(i);
+          }).join(', ');
+        }
+        extractedMethods.push(`${instanceName}.${fnName}(${sampleArgs})`);
+      }
+
+      if (extractedMethods.length === 0) {
+        extractedMethods.push(`${instanceName}.read()`);
+      }
+
+      document.getElementById('customLibHeader').value = `${className}.h`;
+      document.getElementById('customLibObject').value = `${className} ${instanceName};`;
+      document.getElementById('customLibSetup').value = hasBegin ? `${instanceName}.begin();` : `// ${instanceName} ready`;
+      document.getElementById('customLibMethod').value = extractedMethods.join(', ');
+
+      showToast(`Parsed class "${className}" (${extractedMethods.length} methods found)! Click "+ Import Library" to register.`);
+    }
+
+    function importCustomHeaderLibrary() {
+      const rawHeader = document.getElementById('customLibHeader').value.trim();
+      const objDecl = document.getElementById('customLibObject').value.trim();
+      const setupLine = document.getElementById('customLibSetup').value.trim();
+      const methodInput = document.getElementById('customLibMethod').value.trim();
+
+      if (!rawHeader) {
+        showToast('Please enter a header file name (e.g. MySensor.h)');
+        return;
+      }
+
+      const cleanHeader = rawHeader.replace(/^#include\s*[<"]|[>"]$/g, '');
+      const parsedMethods = methodInput
+        ? methodInput.split(',').map(s => s.trim()).filter(Boolean)
+        : [`// Call ${cleanHeader} method`];
+
+      customImportedLibraries.push({
+        header: cleanHeader,
+        objectDecl: objDecl,
+        setupCall: setupLine,
+        defaultMethod: parsedMethods[0],
+        methods: parsedMethods
+      });
+
+      document.getElementById('customLibHeader').value = '';
+      document.getElementById('customLibObject').value = '';
+      document.getElementById('customLibSetup').value = '';
+      document.getElementById('customLibMethod').value = '';
+
+      renderLibraryManagerUI();
+      updateArduinoCode();
+      showToast(`Imported <${cleanHeader}>! Open "📚 Libraries & Custom .h" in the left sidebar to drag its blocks.`);
+    }
+
+    function insertImportedLibBlockToWorkspace(libIdx, mode) {
+      if (!workspace) return;
+      const lib = customImportedLibraries[libIdx];
+      if (!lib) return;
+
+      const blockType = mode === 'val' ? 'lib_imported_value' : 'lib_imported_call';
+      const newBlock = workspace.newBlock(blockType);
+      const comboKey = `${libIdx}:::${lib.defaultMethod}`;
+      if (newBlock.getField('LIB_METHOD')) {
+        newBlock.getField('LIB_METHOD').setValue(comboKey);
+      }
+      newBlock.initSvg();
+      newBlock.render();
+      newBlock.moveBy(120 + Math.random() * 60, 140 + Math.random() * 60);
+
+      closeLibraryModal();
+      updateArduinoCode();
+      showToast(`Dropped <${lib.header}> ${mode === 'val' ? 'Value' : 'Action'} block onto workspace!`);
+    }
+
+    function removeCustomLibrary(idx) {
+      customImportedLibraries.splice(idx, 1);
+      renderLibraryManagerUI();
+      updateArduinoCode();
+    }
+
+    function openLibraryModal() {
+      renderLibraryManagerUI();
+      const modal = document.getElementById('libraryModal');
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+    }
+
+    function closeLibraryModal() {
+      const modal = document.getElementById('libraryModal');
+      modal.classList.add('hidden');
+      modal.classList.remove('flex');
+    }
+
+    /***************************************************************************
+     * 1. MIT APP INVENTOR STYLE NAMED HARDWARE COMPONENTS STATE
+     ***************************************************************************/
+    let namedComponents = [
+      { name: 'Status_LED', type: 'LED', pin: '13', mode: 'OUTPUT' },
+      { name: 'Gate_Alarm', type: 'BUZZER', pin: '8', mode: 'OUTPUT' },
+      { name: 'Start_Button', type: 'BUTTON', pin: '2', mode: 'INPUT_PULLUP' }
+    ];
+
+    function formatPinLabel(pin) {
+      return /^(A|D|GP|LED)/i.test(String(pin)) ? String(pin) : `D${pin}`;
+    }
+
+    function populateComponentPinOptions() {
+      const select = document.getElementById('newCompPin');
+      if (!select) return;
+      const pins = getBoardDigitalPins();
+      const prev = select.value;
+      select.innerHTML = pins.map(([label, val]) => `<option value="${val}">${label}</option>`).join('');
+      if (pins.some(([, val]) => val === prev)) {
+        select.value = prev;
+      }
+    }
+
+    function getOutputComponentDropdown() {
+      const outputs = namedComponents.filter(c => c.mode === 'OUTPUT');
+      if (outputs.length === 0) return [['Status_LED (Pin 13)', 'Status_LED']];
+      return outputs.map(c => [`${c.name} (${c.type} · ${formatPinLabel(c.pin)})`, c.name]);
+    }
+
+    function getInputComponentDropdown() {
+      const inputs = namedComponents.filter(c => c.mode !== 'OUTPUT');
+      if (inputs.length === 0) return [['Start_Button (Pin 2)', 'Start_Button']];
+      return inputs.map(c => [`${c.name} (${c.type} · ${formatPinLabel(c.pin)})`, c.name]);
+    }
+
+    function renderNamedComponentsUI() {
+      const container = document.getElementById('componentPillsContainer');
+      const modalList = document.getElementById('modalComponentsList');
+      container.innerHTML = '';
+      modalList.innerHTML = '';
+
+      namedComponents.forEach((comp, idx) => {
+        // Top strip badge
+        const badge = document.createElement('div');
+        badge.className = 'px-2 py-0.5 rounded-md bg-slate-800 border border-slate-700 text-slate-200 flex items-center gap-1.5 text-[11px] shrink-0';
+        const icon = comp.mode === 'OUTPUT' ? 'fa-lightbulb text-amber-400' : 'fa-toggle-on text-sky-400';
+        badge.innerHTML = `
+          <i class="fa-solid ${icon}"></i>
+          <span class="font-mono font-semibold">${comp.name}</span>
+          <span class="text-slate-400">${formatPinLabel(comp.pin)}</span>
+        `;
+        container.appendChild(badge);
+
+        // Modal row
+        const row = document.createElement('div');
+        row.className = 'flex items-center justify-between bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-xs';
+        row.innerHTML = `
+          <div class="flex items-center gap-2">
+            <span class="font-mono font-semibold text-teal-300">${comp.name}</span>
+            <span class="text-[10px] px-1.5 py-0.5 rounded bg-slate-800 text-slate-300">${comp.type}</span>
+            <span class="text-[11px] text-slate-400">Pin ${formatPinLabel(comp.pin)} (${comp.mode})</span>
+          </div>
+          ${namedComponents.length > 1 ? `
+            <button onclick="removeNamedComponent(${idx})" class="text-slate-500 hover:text-rose-400 transition">
+              <i class="fa-solid fa-trash-can"></i>
+            </button>
+          ` : ''}
+        `;
+        modalList.appendChild(row);
+      });
+    }
+
+    function addNamedComponent() {
+      const rawName = document.getElementById('newCompName').value.trim();
+      const type = document.getElementById('newCompType').value;
+      const pin = document.getElementById('newCompPin').value;
+
+      const cleanName = (rawName || `${type}_D${pin}`).replace(/[^a-zA-Z0-9_]/g, '_');
+      const mode = type === 'BUTTON' ? 'INPUT_PULLUP' : 'OUTPUT';
+
+      namedComponents.push({ name: cleanName, type, pin, mode });
+      document.getElementById('newCompName').value = '';
+      renderNamedComponentsUI();
+      updateArduinoCode();
+      showToast(`Added component "${cleanName}" on Pin D${pin}`);
+    }
+
+    function removeNamedComponent(index) {
+      namedComponents.splice(index, 1);
+      renderNamedComponentsUI();
+      updateArduinoCode();
+    }
+
+    function openSimulatorModal() {
+      populateComponentPinOptions();
+      renderNamedComponentsUI();
+      const modal = document.getElementById('componentModal');
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+    }
+
+    function closeSimulatorModal() {
+      const modal = document.getElementById('componentModal');
+      modal.classList.add('hidden');
+      modal.classList.remove('flex');
+    }
+
+    /***************************************************************************
+     * 2. CUSTOM ARDUINO C++ GENERATOR ENGINE (`ArduinoGenerator`)
+     ***************************************************************************/
+    const ArduinoGenerator = new Blockly.Generator('Arduino');
+
+    // Operator Precedence Constants for C++
+    ArduinoGenerator.ORDER_ATOMIC = 0;
+    ArduinoGenerator.ORDER_UNARY_POSTFIX = 1;
+    ArduinoGenerator.ORDER_UNARY_PREFIX = 2;
+    ArduinoGenerator.ORDER_MULTIPLICATIVE = 3;
+    ArduinoGenerator.ORDER_ADDITIVE = 4;
+    ArduinoGenerator.ORDER_RELATIONAL = 6;
+    ArduinoGenerator.ORDER_EQUALITY = 7;
+    ArduinoGenerator.ORDER_LOGICAL_AND = 11;
+    ArduinoGenerator.ORDER_LOGICAL_OR = 12;
+    ArduinoGenerator.ORDER_ASSIGNMENT = 14;
+    ArduinoGenerator.ORDER_NONE = 99;
+
+    ArduinoGenerator.INDENT = '  ';
+
+    /**
+     * Initialize dictionaries before every workspace code generation run
+     */
+    ArduinoGenerator.init = function(workspace) {
+      this.includes_ = Object.create(null);
+      this.definitions_ = Object.create(null);
+      this.setupCode_ = Object.create(null);
+      this.pioDeps_ = Object.create(null);
+      this.userSetupBranch_ = '';
+      this.userLoopBranch_ = '';
+      this.repeatCounter_ = 0;
+
+      // Inject any curated libraries toggled ON in the Library Manager
+      CURATED_LIBRARIES.forEach(lib => {
+        if (lib.enabled) {
+          this.includes_['curated_' + lib.id] = lib.header;
+          if (lib.def) this.definitions_['curated_' + lib.id] = lib.def;
+          if (lib.setup) this.setupCode_['curated_' + lib.id] = lib.setup;
+          if (lib.pioDep) this.pioDeps_['curated_' + lib.id] = lib.pioDep;
+        }
+      });
+    };
+
+    /**
+     * Chain stacked blocks seamlessly
+     */
+    ArduinoGenerator.scrub_ = function(block, code, thisOnly) {
+      const nextBlock = block.nextConnection && block.nextConnection.targetBlock();
+      if (nextBlock && !thisOnly) {
+        return code + ArduinoGenerator.blockToCode(nextBlock);
+      }
+      return code;
+    };
+
+    /**
+     * Assemble final `.ino` file with deduplicated #includes, globals, setup(), and loop()
+     */
+    ArduinoGenerator.finish = function(code) {
+      const board = getActiveBoardProfile();
+      const includesList = Object.values(this.includes_);
+      const defsList = Object.values(this.definitions_);
+      const autoSetupList = Object.values(this.setupCode_);
+
+      // Update Resource Inspector UI in real time
+      updateResourceInspector(includesList, autoSetupList, defsList);
+
+      let header = `// ============================================================\n`;
+      header += `// Generated by ArduinoBlocks Studio (Universal Block IDE)\n`;
+      header += `// Target Board : ${board.name}\n`;
+      header += `// Architecture : ${board.mcu} (${board.voltage} Logic · ${board.adcBits}-bit ADC)\n`;
+      header += `// ============================================================\n\n`;
+
+      if (includesList.length > 0) {
+        header += `// --- Included Libraries ---\n`;
+        header += includesList.join('\n') + '\n\n';
+      }
+
+      if (defsList.length > 0) {
+        header += `// --- Global Definitions, Pins & Helper Functions ---\n`;
+        header += defsList.join('\n') + '\n\n';
+      }
+
+      // Build void setup()
+      let setupBody = '';
+      if (autoSetupList.length > 0) {
+        setupBody += `  // Auto-configured hardware & library setup\n`;
+        setupBody += autoSetupList.map(line => '  ' + line).join('\n') + '\n';
+      }
+      if (this.userSetupBranch_ && this.userSetupBranch_.trim() !== '') {
+        if (setupBody) setupBody += '\n  // User setup blocks\n';
+        setupBody += this.userSetupBranch_;
+      }
+      if (!setupBody) {
+        setupBody = '  // Put your setup blocks here, to run once:\n';
+      }
+
+      // Build void loop()
+      let loopBody = '';
+      if (this.userLoopBranch_ && this.userLoopBranch_.trim() !== '') {
+        loopBody += this.userLoopBranch_;
+      }
+      if (code && code.trim() !== '') {
+        loopBody += this.prefixLines(code, '  ');
+      }
+      if (!loopBody) {
+        loopBody = '  // Put your main loop blocks here, to run repeatedly:\n';
+      }
+
+      return (
+        header +
+        `void setup() {\n${setupBody}}\n\n` +
+        `void loop() {\n${loopBody}}\n`
+      );
+    };
+
+    /***************************************************************************
+     * 3. DEFINE CUSTOM ARDUINO BLOCKS & GENERATOR FUNCTIONS
+     ***************************************************************************/
+    // Dynamic board-aware pin getters are used inside FieldDropdown(getBoardDigitalPins)
+    // so switching boards immediately updates available pins on all blocks!
+
+    // --- 3.1 STRUCTURE BLOCKS ---
+    Blockly.Blocks['arduino_setup_loop'] = {
+      init: function() {
+        this.appendDummyInput()
+            .appendField("⚡ Arduino Program Structure");
+        this.appendStatementInput("SETUP")
+            .setCheck(null)
+            .appendField("void setup()  [Runs Once]");
+        this.appendStatementInput("LOOP")
+            .setCheck(null)
+            .appendField("void loop()   [Runs Forever]");
+        this.setColour('#00979D');
+        this.setTooltip("Main root container for Arduino setup() and loop() functions.");
+      }
+    };
+
+    ArduinoGenerator.forBlock['arduino_setup_loop'] = function(block, generator) {
+      generator.userSetupBranch_ += generator.statementToCode(block, 'SETUP');
+      generator.userLoopBranch_ += generator.statementToCode(block, 'LOOP');
+      return '';
+    };
+
+    Blockly.Blocks['arduino_comment'] = {
+      init: function() {
+        this.appendDummyInput()
+            .appendField("💬 // Comment:")
+            .appendField(new Blockly.FieldTextInput("Note"), "TEXT");
+        this.setPreviousStatement(true, null);
+        this.setNextStatement(true, null);
+        this.setColour('#00979D');
+      }
+    };
+
+    ArduinoGenerator.forBlock['arduino_comment'] = function(block) {
+      const text = block.getFieldValue('TEXT');
+      return `// ${text}\n`;
+    };
+
+    Blockly.Blocks['arduino_raw_statement'] = {
+      init: function() {
+        this.appendDummyInput()
+            .appendField("⚡ C++ Line:")
+            .appendField(new Blockly.FieldTextInput("// custom code;"), "CODE");
+        this.setPreviousStatement(true, null);
+        this.setNextStatement(true, null);
+        this.setColour('#00979D');
+      }
+    };
+
+    ArduinoGenerator.forBlock['arduino_raw_statement'] = function(block) {
+      return block.getFieldValue('CODE') + '\n';
+    };
+
+    Blockly.Blocks['arduino_raw_expression'] = {
+      init: function() {
+        this.appendDummyInput()
+            .appendField("⚡ C++ Expr:")
+            .appendField(new Blockly.FieldTextInput("analogRead(A0) * (5.0 / 1023.0)"), "EXPR");
+        this.setOutput(true, null);
+        this.setColour('#00979D');
+        this.setTooltip("Embed any arbitrary C++ expression as a value block.");
+      }
+    };
+
+    ArduinoGenerator.forBlock['arduino_raw_expression'] = function(block) {
+      return [block.getFieldValue('EXPR'), ArduinoGenerator.ORDER_ATOMIC];
+    };
+
+    Blockly.Blocks['arduino_raw_global'] = {
+      init: function() {
+        this.appendDummyInput()
+            .appendField("⚡ Global C++ / #define:")
+            .appendField(new Blockly.FieldTextInput("#define DEBUG_MODE 1"), "CODE");
+        this.setPreviousStatement(true, null);
+        this.setNextStatement(true, null);
+        this.setColour('#00979D');
+        this.setTooltip("Injects any custom macro, #define, or global C++ code above setup().");
+      }
+    };
+
+    ArduinoGenerator.forBlock['arduino_raw_global'] = function(block, generator) {
+      const code = block.getFieldValue('CODE');
+      generator.definitions_['raw_global_' + code] = code;
+      return '';
+    };
+
+    // --- 3.12 HARDWARE INTERRUPTS (ISR) BLOCKS ---
+    Blockly.Blocks['arduino_attach_interrupt'] = {
+      init: function() {
+        this.appendDummyInput()
+            .appendField("⚡ Hardware Interrupt on Pin")
+            .appendField(new Blockly.FieldDropdown(getBoardInterruptPins), "PIN")
+            .appendField("Trigger:")
+            .appendField(new Blockly.FieldDropdown([
+              ["FALLING (HIGH → LOW)", "FALLING"],
+              ["RISING (LOW → HIGH)", "RISING"],
+              ["CHANGE (Any Edge)", "CHANGE"],
+              ["LOW (While LOW)", "LOW"]
+            ]), "MODE")
+            .appendField("ISR Name:")
+            .appendField(new Blockly.FieldTextInput("onPulseDetected"), "ISR_NAME");
+        this.appendStatementInput("ISR_BODY")
+            .setCheck(null)
+            .appendField("ISR Code (Keep Fast & Non-Blocking):");
+        this.setPreviousStatement(true, null);
+        this.setNextStatement(true, null);
+        this.setColour('#E11D48');
+        this.setTooltip("Attaches a hardware interrupt via digitalPinToInterrupt(pin). Automatically adds IRAM_ATTR on ESP32/ESP8266!");
+      }
+    };
+
+    ArduinoGenerator.forBlock['arduino_attach_interrupt'] = function(block, generator) {
+      const board = getActiveBoardProfile();
+      const pin = block.getFieldValue('PIN');
+      const mode = block.getFieldValue('MODE');
+      const isrName = block.getFieldValue('ISR_NAME').replace(/[^a-zA-Z0-9_]/g, '_') || 'myISR';
+      const branch = generator.statementToCode(block, 'ISR_BODY') || '  // ISR triggered\n';
+
+      // ESP32 & ESP8266 require IRAM_ATTR so the ISR resides in instruction RAM
+      const iramAttr = (board.id === 'esp32' || board.id === 'esp8266') ? 'IRAM_ATTR ' : '';
+
+      generator.definitions_['isr_func_' + isrName] =
+`void ${iramAttr}${isrName}() {
+${branch}}`;
+
+      const pullupMode = (mode === 'FALLING' || mode === 'LOW') ? 'INPUT_PULLUP' : 'INPUT';
+      generator.setupCode_['isr_pin_' + pin] = `pinMode(${pin}, ${pullupMode});`;
+      generator.setupCode_['isr_attach_' + pin] = `attachInterrupt(digitalPinToInterrupt(${pin}), ${isrName}, ${mode});`;
+      return '';
+    };
+
+    Blockly.Blocks['arduino_detach_interrupt'] = {
+      init: function() {
+        this.appendDummyInput()
+            .appendField("⚡ detachInterrupt on Pin")
+            .appendField(new Blockly.FieldDropdown(getBoardInterruptPins), "PIN");
+        this.setPreviousStatement(true, null);
+        this.setNextStatement(true, null);
+        this.setColour('#E11D48');
+      }
+    };
+
+    ArduinoGenerator.forBlock['arduino_detach_interrupt'] = function(block) {
+      const pin = block.getFieldValue('PIN');
+      return `detachInterrupt(digitalPinToInterrupt(${pin}));\n`;
+    };
+
+    Blockly.Blocks['arduino_interrupts_ctrl'] = {
+      init: function() {
+        this.appendDummyInput()
+            .appendField("⚡ Global Interrupts:")
+            .appendField(new Blockly.FieldDropdown([
+              ["Disable (noInterrupts / cli)", "noInterrupts()"],
+              ["Enable (interrupts / sei)", "interrupts()"]
+            ]), "ACTION");
+        this.setPreviousStatement(true, null);
+        this.setNextStatement(true, null);
+        this.setColour('#E11D48');
+        this.setTooltip("Use noInterrupts() and interrupts() around critical sections when reading volatile variables.");
+      }
+    };
+
+    ArduinoGenerator.forBlock['arduino_interrupts_ctrl'] = function(block) {
+      return block.getFieldValue('ACTION') + ';\n';
+    };
+
+    Blockly.Blocks['arduino_volatile_var'] = {
+      init: function() {
+        this.appendValueInput("VALUE")
+            .appendField("⚡ declare ISR")
+            .appendField("volatile")
+            .appendField(new Blockly.FieldDropdown([["long", "long"], ["unsigned long", "unsigned long"], ["int", "int"], ["bool", "bool"], ["byte", "byte"]]), "TYPE")
+            .appendField(new Blockly.FieldTextInput("pulseCount"), "VAR")
+            .appendField("=");
+        this.setPreviousStatement(true, null);
+        this.setNextStatement(true, null);
+        this.setColour('#E11D48');
+        this.setTooltip("Variables shared between an Interrupt Service Routine (ISR) and loop() MUST be declared volatile.");
+      }
+    };
+
+    ArduinoGenerator.forBlock['arduino_volatile_var'] = function(block, generator) {
+      const type = block.getFieldValue('TYPE');
+      const varName = block.getFieldValue('VAR').replace(/[^a-zA-Z0-9_]/g, '_');
+      const val = generator.valueToCode(block, 'VALUE', ArduinoGenerator.ORDER_ASSIGNMENT) || '0';
+      generator.definitions_['var_' + varName] = `volatile ${type} ${varName} = ${val};`;
+      return '';
+    };
+
+    // --- 3.14 CUSTOM C++ FUNCTIONS (PROCEDURES WITH ARGUMENTS & RETURN VALUES) ---
+    Blockly.Blocks['arduino_func_def_void'] = {
+      init: function() {
+        this.appendDummyInput()
+            .appendField("🛠️ define void function")
+            .appendField(new Blockly.FieldTextInput("myCustomTask"), "NAME")
+            .appendField("(")
+            .appendField(new Blockly.FieldTextInput("int speed, bool dir"), "PARAMS")
+            .appendField(")");
+        this.appendStatementInput("BODY")
+            .setCheck(null)
+            .appendField("do:");
+        this.setPreviousStatement(true, null);
+        this.setNextStatement(true, null);
+        this.setColour('#D946EF');
+      }
+    };
+
+    ArduinoGenerator.forBlock['arduino_func_def_void'] = function(block, generator) {
+      const name = block.getFieldValue('NAME').replace(/[^a-zA-Z0-9_]/g, '_');
+      const params = block.getFieldValue('PARAMS').trim();
+      const body = generator.statementToCode(block, 'BODY') || '  // Function body\n';
+      generator.definitions_['custom_fn_' + name] =
+`void ${name}(${params}) {
+${body}}`;
+      return '';
+    };
+
+    Blockly.Blocks['arduino_func_def_return'] = {
+      init: function() {
+        this.appendDummyInput()
+            .appendField("🛠️ define function returning")
+            .appendField(new Blockly.FieldDropdown([["int", "int"], ["long", "long"], ["float", "float"], ["bool", "bool"], ["String", "String"]]), "TYPE")
+            .appendField(new Blockly.FieldTextInput("calculateAverage"), "NAME")
+            .appendField("(")
+            .appendField(new Blockly.FieldTextInput("float a, float b"), "PARAMS")
+            .appendField(")");
+        this.appendStatementInput("BODY")
+            .setCheck(null)
+            .appendField("do:");
+        this.appendValueInput("RETURN_VAL")
+            .appendField("return:");
+        this.setPreviousStatement(true, null);
+        this.setNextStatement(true, null);
+        this.setColour('#D946EF');
+      }
+    };
+
+    ArduinoGenerator.forBlock['arduino_func_def_return'] = function(block, generator) {
+      const type = block.getFieldValue('TYPE');
+      const name = block.getFieldValue('NAME').replace(/[^a-zA-Z0-9_]/g, '_');
+      const params = block.getFieldValue('PARAMS').trim();
+      const body = generator.statementToCode(block, 'BODY') || '';
+      const retVal = generator.valueToCode(block, 'RETURN_VAL', ArduinoGenerator.ORDER_NONE) || '0';
+      generator.definitions_['custom_fn_' + name] =
+`${type} ${name}(${params}) {
+${body}  return ${retVal};
+}`;
+      return '';
+    };
+
+    Blockly.Blocks['arduino_func_call_stmt'] = {
+      init: function() {
+        this.appendDummyInput()
+            .appendField("🛠️ call function")
+            .appendField(new Blockly.FieldTextInput("myCustomTask"), "NAME")
+            .appendField("(")
+            .appendField(new Blockly.FieldTextInput("255, true"), "ARGS")
+            .appendField(");");
+        this.setPreviousStatement(true, null);
+        this.setNextStatement(true, null);
+        this.setColour('#D946EF');
+      }
+    };
+
+    ArduinoGenerator.forBlock['arduino_func_call_stmt'] = function(block) {
+      const name = block.getFieldValue('NAME').replace(/[^a-zA-Z0-9_]/g, '_');
+      const args = block.getFieldValue('ARGS').trim();
+      return `${name}(${args});\n`;
+    };
+
+    Blockly.Blocks['arduino_func_call_val'] = {
+      init: function() {
+        this.appendDummyInput()
+            .appendField("🛠️ call")
+            .appendField(new Blockly.FieldTextInput("calculateAverage"), "NAME")
+            .appendField("(")
+            .appendField(new Blockly.FieldTextInput("12.5, 18.0"), "ARGS")
+            .appendField(")");
+        this.setOutput(true, null);
+        this.setColour('#D946EF');
+      }
+    };
+
+    ArduinoGenerator.forBlock['arduino_func_call_val'] = function(block) {
+      const name = block.getFieldValue('NAME').replace(/[^a-zA-Z0-9_]/g, '_');
+      const args = block.getFieldValue('ARGS').trim();
+      return [`${name}(${args})`, ArduinoGenerator.ORDER_ATOMIC];
+    };
+
+    Blockly.Blocks['arduino_return_stmt'] = {
+      init: function() {
+        this.appendValueInput("VAL")
+            .appendField("🛠️ return");
+        this.setPreviousStatement(true, null);
+        this.setNextStatement(true, null);
+        this.setColour('#D946EF');
+      }
+    };
+
+    ArduinoGenerator.forBlock['arduino_return_stmt'] = function(block, generator) {
+      const val = generator.valueToCode(block, 'VAL', ArduinoGenerator.ORDER_NONE) || '';
+      return val ? `return ${val};\n` : `return;\n`;
+    };
+
+    // --- 3.15 UNIVERSAL LIBRARY & CUSTOM .H BLOCKS ---
+    Blockly.Blocks['lib_include_custom'] = {
+      init: function() {
+        this.appendDummyInput()
+            .appendField("📚 #include")
+            .appendField(new Blockly.FieldDropdown([["<Header.h> (System/Library)", "ANGLE"], ["\"Header.h\" (Local File)", "QUOTE"]]), "BRACKET")
+            .appendField(new Blockly.FieldTextInput("Wire.h"), "HEADER");
+        this.setPreviousStatement(true, null);
+        this.setNextStatement(true, null);
+        this.setColour('#9333EA');
+        this.setTooltip("Injects any custom #include <Library.h> at the top of the sketch.");
+      }
+    };
+
+    ArduinoGenerator.forBlock['lib_include_custom'] = function(block, generator) {
+      const header = block.getFieldValue('HEADER').trim().replace(/^#include\s*[<"]|[>"]$/g, '');
+      const mode = block.getFieldValue('BRACKET');
+      const formatted = mode === 'QUOTE' ? `#include "${header}"` : `#include <${header}>`;
+      generator.includes_['custom_inc_' + header] = formatted;
+      return '';
+    };
+
+    Blockly.Blocks['lib_global_instance'] = {
+      init: function() {
+        this.appendDummyInput()
+            .appendField("📚 Global Object / Struct:")
+            .appendField(new Blockly.FieldTextInput("LiquidCrystal_I2C lcd(0x27, 16, 2);"), "DECL");
+        this.setPreviousStatement(true, null);
+        this.setNextStatement(true, null);
+        this.setColour('#9333EA');
+        this.setTooltip("Declares a global class instance or struct above void setup().");
+      }
+    };
+
+    ArduinoGenerator.forBlock['lib_global_instance'] = function(block, generator) {
+      const decl = block.getFieldValue('DECL').trim();
+      generator.definitions_['custom_decl_' + decl] = decl.endsWith(';') ? decl : decl + ';';
+      return '';
+    };
+
+    Blockly.Blocks['lib_setup_init'] = {
+      init: function() {
+        this.appendDummyInput()
+            .appendField("📚 Inject into setup():")
+            .appendField(new Blockly.FieldTextInput("lcd.init(); lcd.backlight();"), "INIT_CODE");
+        this.setPreviousStatement(true, null);
+        this.setNextStatement(true, null);
+        this.setColour('#9333EA');
+      }
+    };
+
+    ArduinoGenerator.forBlock['lib_setup_init'] = function(block, generator) {
+      const initCode = block.getFieldValue('INIT_CODE').trim();
+      generator.setupCode_['custom_init_' + initCode] = initCode.endsWith(';') ? initCode : initCode + ';';
+      return '';
+    };
+
+    Blockly.Blocks['lib_imported_call'] = {
+      init: function() {
+        this.appendDummyInput()
+            .appendField("📚 run imported library action")
+            .appendField(new Blockly.FieldDropdown(getAllImportedLibraryMethodsDropdown), "LIB_METHOD");
+        this.setPreviousStatement(true, null);
+        this.setNextStatement(true, null);
+        this.setColour('#9333EA');
+        this.setTooltip("Automatically includes the imported .h header, declares its global object, runs its setup() init, and executes the selected method.");
+      }
+    };
+
+    function injectLibraryDependenciesFromKey(comboKey, generator) {
+      if (!comboKey) return '// no method';
+      const parts = String(comboKey).split(':::');
+      if (parts.length === 2) {
+        const prefix = parts[0];
+        const methodExpr = parts[1];
+        if (prefix.startsWith('CURATED_')) {
+          const curatedId = prefix.replace('CURATED_', '');
+          const cLib = CURATED_LIBRARIES.find(l => l.id === curatedId);
+          if (cLib) {
+            generator.includes_['curated_' + cLib.id] = cLib.header;
+            if (cLib.def) generator.definitions_['curated_' + cLib.id] = cLib.def;
+            if (cLib.setup) generator.setupCode_['curated_' + cLib.id] = cLib.setup;
+            if (cLib.pioDep) generator.pioDeps_['curated_' + cLib.id] = cLib.pioDep;
+          }
+        } else {
+          const idx = Number(prefix) || 0;
+          const lib = customImportedLibraries[idx] || customImportedLibraries[0];
+          if (lib) {
+            generator.includes_['imp_' + lib.header] = `#include <${lib.header}>`;
+            if (lib.objectDecl) generator.definitions_['imp_' + lib.header] = lib.objectDecl;
+            if (lib.setupCall) generator.setupCode_['imp_' + lib.header] = lib.setupCall;
+          }
+        }
+        return methodExpr;
+      }
+      const idx = Number(comboKey) || 0;
+      const lib = customImportedLibraries[idx] || customImportedLibraries[0];
+      if (!lib) return '';
+      generator.includes_['imp_' + lib.header] = `#include <${lib.header}>`;
+      if (lib.objectDecl) generator.definitions_['imp_' + lib.header] = lib.objectDecl;
+      if (lib.setupCall) generator.setupCode_['imp_' + lib.header] = lib.setupCall;
+      return lib.defaultMethod;
+    }
+
+    ArduinoGenerator.forBlock['lib_imported_call'] = function(block, generator) {
+      const key = block.getFieldValue('LIB_METHOD');
+      const callExpr = injectLibraryDependenciesFromKey(key, generator);
+      if (!callExpr) return '';
+      const callStr = callExpr.endsWith(';') ? callExpr : callExpr + ';';
+      return `${callStr}\n`;
+    };
+
+    Blockly.Blocks['lib_imported_value'] = {
+      init: function() {
+        this.appendDummyInput()
+            .appendField("📚 read imported library value")
+            .appendField(new Blockly.FieldDropdown(getAllImportedLibraryMethodsDropdown), "LIB_METHOD");
+        this.setOutput(true, null);
+        this.setColour('#9333EA');
+        this.setTooltip("Reads a sensor/return value from an imported .h library and automatically injects its #include, global object, and setup() code.");
+      }
+    };
+
+    ArduinoGenerator.forBlock['lib_imported_value'] = function(block, generator) {
+      const key = block.getFieldValue('LIB_METHOD');
+      const valExpr = injectLibraryDependenciesFromKey(key, generator).replace(/;$/, '');
+      return [valExpr || '0', ArduinoGenerator.ORDER_ATOMIC];
+    };
+
+    Blockly.Blocks['lib_method_call_stmt'] = {
+      init: function() {
+        this.appendValueInput("ARGS")
+            .appendField("📚 call object")
+            .appendField(new Blockly.FieldTextInput("lcd"), "OBJ")
+            .appendField(".")
+            .appendField(new Blockly.FieldTextInput("print"), "METHOD")
+            .appendField("(");
+        this.appendDummyInput()
+            .appendField(");");
+        this.setInputsInline(true);
+        this.setPreviousStatement(true, null);
+        this.setNextStatement(true, null);
+        this.setColour('#9333EA');
+      }
+    };
+
+    ArduinoGenerator.forBlock['lib_method_call_stmt'] = function(block, generator) {
+      const obj = block.getFieldValue('OBJ').trim();
+      const method = block.getFieldValue('METHOD').trim();
+      const args = generator.valueToCode(block, 'ARGS', ArduinoGenerator.ORDER_NONE) || '';
+      return `${obj}.${method}(${args});\n`;
+    };
+
+    Blockly.Blocks['lib_method_call_val'] = {
+      init: function() {
+        this.appendDummyInput()
+            .appendField("📚 library value:")
+            .appendField(new Blockly.FieldTextInput("mpu.getAccelerationX()"), "EXPR");
+        this.setOutput(true, null);
+        this.setColour('#9333EA');
+      }
+    };
+
+    ArduinoGenerator.forBlock['lib_method_call_val'] = function(block) {
+      const expr = block.getFieldValue('EXPR').trim();
+      return [expr, ArduinoGenerator.ORDER_ATOMIC];
+    };
+
+    // --- 3.2 MIT APP INVENTOR STYLE NAMED COMPONENT BLOCKS ---
+    Blockly.Blocks['component_set_state'] = {
+      init: function() {
+        this.appendDummyInput()
+            .appendField("🧩 set component")
+            .appendField(new Blockly.FieldDropdown(getOutputComponentDropdown), "COMP")
+            .appendField("to")
+            .appendField(new Blockly.FieldDropdown([["ON (HIGH)", "HIGH"], ["OFF (LOW)", "LOW"]]), "STATE");
+        this.setPreviousStatement(true, null);
+        this.setNextStatement(true, null);
+        this.setColour('#D97706');
+      }
+    };
+
+    ArduinoGenerator.forBlock['component_set_state'] = function(block, generator) {
+      const compName = block.getFieldValue('COMP');
+      const state = block.getFieldValue('STATE');
+      const comp = namedComponents.find(c => c.name === compName) || { name: compName, pin: '13', mode: 'OUTPUT' };
+      const pinConst = `PIN_${comp.name.toUpperCase()}`;
+      generator.definitions_['comp_' + comp.name] = `const int ${pinConst} = ${comp.pin}; // ${comp.name}`;
+      generator.setupCode_['comp_' + comp.name] = `pinMode(${pinConst}, OUTPUT);`;
+      return `digitalWrite(${pinConst}, ${state});\n`;
+    };
+
+    Blockly.Blocks['component_toggle'] = {
+      init: function() {
+        this.appendDummyInput()
+            .appendField("🧩 toggle component")
+            .appendField(new Blockly.FieldDropdown(getOutputComponentDropdown), "COMP");
+        this.setPreviousStatement(true, null);
+        this.setNextStatement(true, null);
+        this.setColour('#D97706');
+      }
+    };
+
+    ArduinoGenerator.forBlock['component_toggle'] = function(block, generator) {
+      const compName = block.getFieldValue('COMP');
+      const comp = namedComponents.find(c => c.name === compName) || { name: compName, pin: '13', mode: 'OUTPUT' };
+      const pinConst = `PIN_${comp.name.toUpperCase()}`;
+      generator.definitions_['comp_' + comp.name] = `const int ${pinConst} = ${comp.pin}; // ${comp.name}`;
+      generator.setupCode_['comp_' + comp.name] = `pinMode(${pinConst}, OUTPUT);`;
+      return `digitalWrite(${pinConst}, !digitalRead(${pinConst}));\n`;
+    };
+
+    Blockly.Blocks['component_read_button'] = {
+      init: function() {
+        this.appendDummyInput()
+            .appendField("🧩 is button")
+            .appendField(new Blockly.FieldDropdown(getInputComponentDropdown), "COMP")
+            .appendField("pressed?");
+        this.setOutput(true, 'Boolean');
+        this.setColour('#D97706');
+      }
+    };
+
+    ArduinoGenerator.forBlock['component_read_button'] = function(block, generator) {
+      const compName = block.getFieldValue('COMP');
+      const comp = namedComponents.find(c => c.name === compName) || { name: compName, pin: '2', mode: 'INPUT_PULLUP' };
+      const pinConst = `PIN_${comp.name.toUpperCase()}`;
+      generator.definitions_['comp_' + comp.name] = `const int ${pinConst} = ${comp.pin}; // ${comp.name}`;
+      generator.setupCode_['comp_' + comp.name] = `pinMode(${pinConst}, INPUT_PULLUP);`;
+      return [`(digitalRead(${pinConst}) == LOW)`, ArduinoGenerator.ORDER_RELATIONAL];
+    };
+
+    // --- 3.3 DIGITAL & ANALOG I/O BLOCKS (DYNAMIC MULTI-BOARD PINS) ---
+    Blockly.Blocks['arduino_digital_write'] = {
+      init: function() {
+        this.appendDummyInput()
+            .appendField("🔌 digitalWrite Pin")
+            .appendField(new Blockly.FieldDropdown(getBoardDigitalPins), "PIN")
+            .appendField("→")
+            .appendField(new Blockly.FieldDropdown([["HIGH", "HIGH"], ["LOW", "LOW"]]), "STATE");
+        this.setPreviousStatement(true, null);
+        this.setNextStatement(true, null);
+        this.setColour('#0284C7');
+      }
+    };
+
+    ArduinoGenerator.forBlock['arduino_digital_write'] = function(block, generator) {
+      const pin = block.getFieldValue('PIN');
+      const state = block.getFieldValue('STATE');
+      generator.setupCode_['pinMode_' + pin] = `pinMode(${pin}, OUTPUT);`;
+      return `digitalWrite(${pin}, ${state});\n`;
+    };
+
+    Blockly.Blocks['arduino_digital_read'] = {
+      init: function() {
+        this.appendDummyInput()
+            .appendField("🔌 digitalRead Pin")
+            .appendField(new Blockly.FieldDropdown(getBoardDigitalPins), "PIN")
+            .appendField("Pull-up:")
+            .appendField(new Blockly.FieldCheckbox("FALSE"), "PULLUP");
+        this.setOutput(true, ['Number', 'Boolean']);
+        this.setColour('#0284C7');
+      }
+    };
+
+    ArduinoGenerator.forBlock['arduino_digital_read'] = function(block, generator) {
+      const pin = block.getFieldValue('PIN');
+      const pullup = block.getFieldValue('PULLUP') === 'TRUE';
+      generator.setupCode_['pinMode_' + pin] = `pinMode(${pin}, ${pullup ? 'INPUT_PULLUP' : 'INPUT'});`;
+      return [`digitalRead(${pin})`, ArduinoGenerator.ORDER_ATOMIC];
+    };
+
+    Blockly.Blocks['arduino_analog_read'] = {
+      init: function() {
+        this.appendDummyInput()
+            .appendField("📊 analogRead Pin")
+            .appendField(new Blockly.FieldDropdown(getBoardAnalogPins), "PIN");
+        this.setOutput(true, 'Number');
+        this.setColour('#0284C7');
+      }
+    };
+
+    ArduinoGenerator.forBlock['arduino_analog_read'] = function(block) {
+      const pin = block.getFieldValue('PIN');
+      return [`analogRead(${pin})`, ArduinoGenerator.ORDER_ATOMIC];
+    };
+
+    Blockly.Blocks['arduino_analog_write'] = {
+      init: function() {
+        this.appendValueInput("VALUE")
+            .setCheck("Number")
+            .appendField("〰️ analogWrite PWM")
+            .appendField(new Blockly.FieldDropdown(getBoardPwmPins), "PIN")
+            .appendField("duty (0-255):");
+        this.setPreviousStatement(true, null);
+        this.setNextStatement(true, null);
+        this.setColour('#0284C7');
+      }
+    };
+
+    ArduinoGenerator.forBlock['arduino_analog_write'] = function(block, generator) {
+      const pin = block.getFieldValue('PIN');
+      const val = generator.valueToCode(block, 'VALUE', ArduinoGenerator.ORDER_ATOMIC) || '0';
+      generator.setupCode_['pinMode_' + pin] = `pinMode(${pin}, OUTPUT);`;
+      return `analogWrite(${pin}, ${val});\n`;
+    };
+
+    Blockly.Blocks['arduino_tone'] = {
+      init: function() {
+        this.appendValueInput("FREQ")
+            .setCheck("Number")
+            .appendField("🔊 play tone on Pin")
+            .appendField(new Blockly.FieldDropdown(getBoardDigitalPins), "PIN")
+            .appendField("freq (Hz):");
+        this.appendValueInput("DURATION")
+            .setCheck("Number")
+            .appendField("duration (ms):");
+        this.setInputsInline(true);
+        this.setPreviousStatement(true, null);
+        this.setNextStatement(true, null);
+        this.setColour('#0284C7');
+      }
+    };
+
+    ArduinoGenerator.forBlock['arduino_tone'] = function(block, generator) {
+      const pin = block.getFieldValue('PIN');
+      const freq = generator.valueToCode(block, 'FREQ', ArduinoGenerator.ORDER_ATOMIC) || '1000';
+      const dur = generator.valueToCode(block, 'DURATION', ArduinoGenerator.ORDER_ATOMIC) || '250';
+      generator.setupCode_['pinMode_' + pin] = `pinMode(${pin}, OUTPUT);`;
+      return `tone(${pin}, ${freq}, ${dur});\n`;
+    };
+
+    Blockly.Blocks['arduino_no_tone'] = {
+      init: function() {
+        this.appendDummyInput()
+            .appendField("🔇 noTone on Pin")
+            .appendField(new Blockly.FieldDropdown(getBoardDigitalPins), "PIN");
+        this.setPreviousStatement(true, null);
+        this.setNextStatement(true, null);
+        this.setColour('#0284C7');
+      }
+    };
+
+    ArduinoGenerator.forBlock['arduino_no_tone'] = function(block) {
+      const pin = block.getFieldValue('PIN');
+      return `noTone(${pin});\n`;
+    };
+
+    Blockly.Blocks['arduino_pulse_in'] = {
+      init: function() {
+        this.appendDummyInput()
+            .appendField("📏 pulseIn (µs) on Pin")
+            .appendField(new Blockly.FieldDropdown(getBoardDigitalPins), "PIN")
+            .appendField("State:")
+            .appendField(new Blockly.FieldDropdown([["HIGH", "HIGH"], ["LOW", "LOW"]]), "STATE");
+        this.setOutput(true, 'Number');
+        this.setColour('#0284C7');
+      }
+    };
+
+    ArduinoGenerator.forBlock['arduino_pulse_in'] = function(block, generator) {
+      const pin = block.getFieldValue('PIN');
+      const state = block.getFieldValue('STATE');
+      generator.setupCode_['pinMode_' + pin] = `pinMode(${pin}, INPUT);`;
+      return [`pulseIn(${pin}, ${state})`, ArduinoGenerator.ORDER_ATOMIC];
+    };
+
+    Blockly.Blocks['arduino_shift_out'] = {
+      init: function() {
+        this.appendValueInput("VAL")
+            .setCheck("Number")
+            .appendField("⛓️ shiftOut Data:")
+            .appendField(new Blockly.FieldDropdown(getBoardDigitalPins), "DATA_PIN")
+            .appendField("Clock:")
+            .appendField(new Blockly.FieldDropdown(getBoardDigitalPins), "CLK_PIN")
+            .appendField("Order:")
+            .appendField(new Blockly.FieldDropdown([["MSBFIRST", "MSBFIRST"], ["LSBFIRST", "LSBFIRST"]]), "ORDER")
+            .appendField("Byte:");
+        this.setPreviousStatement(true, null);
+        this.setNextStatement(true, null);
+        this.setColour('#0284C7');
+      }
+    };
+
+    ArduinoGenerator.forBlock['arduino_shift_out'] = function(block, generator) {
+      const dataPin = block.getFieldValue('DATA_PIN');
+      const clkPin = block.getFieldValue('CLK_PIN');
+      const order = block.getFieldValue('ORDER');
+      const val = generator.valueToCode(block, 'VAL', ArduinoGenerator.ORDER_ATOMIC) || '0';
+      generator.setupCode_['pinMode_' + dataPin] = `pinMode(${dataPin}, OUTPUT);`;
+      generator.setupCode_['pinMode_' + clkPin] = `pinMode(${clkPin}, OUTPUT);`;
+      return `shiftOut(${dataPin}, ${clkPin}, ${order}, ${val});\n`;
+    };
+
+    // --- 3.4 SENSORS & ACTUATORS (BOARD-AWARE HARDWARE MODULES) ---
+    Blockly.Blocks['sensor_ultrasonic_cm'] = {
+      init: function() {
+        this.appendDummyInput()
+            .appendField("🦇 Ultrasonic Distance (cm)  Trig:")
+            .appendField(new Blockly.FieldDropdown(getBoardDigitalPins), "TRIG")
+            .appendField("Echo:")
+            .appendField(new Blockly.FieldDropdown(getBoardDigitalPins), "ECHO");
+        this.setOutput(true, 'Number');
+        this.setColour('#7C3AED');
+        this.setTooltip("Reads HC-SR04 ultrasonic sensor distance in centimeters and injects helper function.");
+      }
+    };
+
+    ArduinoGenerator.forBlock['sensor_ultrasonic_cm'] = function(block, generator) {
+      const trig = block.getFieldValue('TRIG');
+      const echo = block.getFieldValue('ECHO');
+      generator.definitions_['func_ultrasonic'] =
+`long readUltrasonicDistance(int trigPin, int echoPin) {
+  pinMode(trigPin, OUTPUT);
+  digitalWrite(trigPin, LOW);
+  delayMicroseconds(2);
+  digitalWrite(trigPin, HIGH);
+  delayMicroseconds(10);
+  digitalWrite(trigPin, LOW);
+  pinMode(echoPin, INPUT);
+  long duration = pulseIn(echoPin, HIGH, 30000);
+  return duration * 0.034 / 2;
+}`;
+      return [`readUltrasonicDistance(${trig}, ${echo})`, ArduinoGenerator.ORDER_ATOMIC];
+    };
+
+    Blockly.Blocks['actuator_servo_write'] = {
+      init: function() {
+        this.appendValueInput("ANGLE")
+            .setCheck("Number")
+            .appendField("⚙️ rotate Servo on Pin")
+            .appendField(new Blockly.FieldDropdown(getBoardPwmPins), "PIN")
+            .appendField("to angle (0-180°):");
+        this.setPreviousStatement(true, null);
+        this.setNextStatement(true, null);
+        this.setColour('#7C3AED');
+      }
+    };
+
+    ArduinoGenerator.forBlock['actuator_servo_write'] = function(block, generator) {
+      const board = getActiveBoardProfile();
+      const pin = block.getFieldValue('PIN');
+      const angle = generator.valueToCode(block, 'ANGLE', ArduinoGenerator.ORDER_ATOMIC) || '90';
+      const servoObj = `servo_pin${pin}`;
+      // Automatically switch between <ESP32Servo.h> and <Servo.h> based on selected board!
+      generator.includes_['servo'] = `#include <${board.servoHeader}>`;
+      if (board.id === 'esp32') {
+        generator.pioDeps_['servo'] = 'madhephaestus/ESP32Servo@^1.1.2';
+      } else {
+        generator.pioDeps_['servo'] = 'arduino-libraries/Servo@^1.2.1';
+      }
+      generator.definitions_[servoObj] = `Servo ${servoObj};`;
+      generator.setupCode_[servoObj] = `${servoObj}.attach(${pin});`;
+      return `${servoObj}.write(${angle});\n`;
+    };
+
+    Blockly.Blocks['sensor_dht_read'] = {
+      init: function() {
+        this.appendDummyInput()
+            .appendField("🌡️ read")
+            .appendField(new Blockly.FieldDropdown([["Temperature (°C)", "readTemperature()"], ["Humidity (%)", "readHumidity()"]]), "METRIC")
+            .appendField("from")
+            .appendField(new Blockly.FieldDropdown([["DHT11", "DHT11"], ["DHT22", "DHT22"]]), "TYPE")
+            .appendField("on Pin")
+            .appendField(new Blockly.FieldDropdown(getBoardDigitalPins), "PIN");
+        this.setOutput(true, 'Number');
+        this.setColour('#7C3AED');
+      }
+    };
+
+    ArduinoGenerator.forBlock['sensor_dht_read'] = function(block, generator) {
+      const pin = block.getFieldValue('PIN');
+      const type = block.getFieldValue('TYPE');
+      const metric = block.getFieldValue('METRIC');
+      const dhtObj = `dht_pin${pin}`;
+      generator.includes_['dht'] = `#include <DHT.h>`;
+      generator.pioDeps_['dht'] = 'adafruit/DHT sensor library@^1.4.6';
+      generator.definitions_[dhtObj] = `DHT ${dhtObj}(${pin}, ${type});`;
+      generator.setupCode_[dhtObj] = `${dhtObj}.begin();`;
+      return [`${dhtObj}.${metric}`, ArduinoGenerator.ORDER_ATOMIC];
+    };
+
+    Blockly.Blocks['sensor_mpu6050_read'] = {
+      init: function() {
+        this.appendDummyInput()
+            .appendField("🧭 MPU6050 IMU read")
+            .appendField(new Blockly.FieldDropdown([
+              ["Accel X (getAccelerationX)", "getAccelerationX()"],
+              ["Accel Y (getAccelerationY)", "getAccelerationY()"],
+              ["Accel Z (getAccelerationZ)", "getAccelerationZ()"],
+              ["Gyro X (getRotationX)", "getRotationX()"],
+              ["Gyro Y (getRotationY)", "getRotationY()"],
+              ["Gyro Z (getRotationZ)", "getRotationZ()"]
+            ]), "AXIS");
+        this.setOutput(true, 'Number');
+        this.setColour('#7C3AED');
+      }
+    };
+
+    ArduinoGenerator.forBlock['sensor_mpu6050_read'] = function(block, generator) {
+      const axis = block.getFieldValue('AXIS');
+      generator.includes_['wire'] = `#include <Wire.h>`;
+      generator.includes_['mpu6050'] = `#include <MPU6050.h>`;
+      generator.pioDeps_['mpu6050'] = 'electroniccats/MPU6050@^1.3.0';
+      generator.definitions_['mpu_obj'] = `MPU6050 mpu;`;
+      generator.setupCode_['mpu_init'] = `Wire.begin();\n  mpu.initialize();`;
+      return [`mpu.${axis}`, ArduinoGenerator.ORDER_ATOMIC];
+    };
+
+    Blockly.Blocks['display_lcd_i2c_print'] = {
+      init: function() {
+        this.appendValueInput("TEXT")
+            .appendField("📟 I2C LCD")
+            .appendField(new Blockly.FieldDropdown([["0x27 (16x2)", "0x27"], ["0x3F (16x2)", "0x3F"]]), "ADDR")
+            .appendField("print");
+        this.appendValueInput("COL").setCheck("Number").appendField("at Col:");
+        this.appendValueInput("ROW").setCheck("Number").appendField("Row:");
+        this.setInputsInline(true);
+        this.setPreviousStatement(true, null);
+        this.setNextStatement(true, null);
+        this.setColour('#7C3AED');
+      }
+    };
+
+    ArduinoGenerator.forBlock['display_lcd_i2c_print'] = function(block, generator) {
+      const addr = block.getFieldValue('ADDR');
+      const txt = generator.valueToCode(block, 'TEXT', ArduinoGenerator.ORDER_NONE) || '""';
+      const col = generator.valueToCode(block, 'COL', ArduinoGenerator.ORDER_ATOMIC) || '0';
+      const row = generator.valueToCode(block, 'ROW', ArduinoGenerator.ORDER_ATOMIC) || '0';
+      generator.includes_['wire'] = `#include <Wire.h>`;
+      generator.includes_['lcd_i2c'] = `#include <LiquidCrystal_I2C.h>`;
+      generator.pioDeps_['lcd_i2c'] = 'marcoschwartz/LiquidCrystal_I2C@^1.1.4';
+      generator.definitions_['lcd_obj'] = `LiquidCrystal_I2C lcd(${addr}, 16, 2);`;
+      generator.setupCode_['lcd_init'] = `lcd.init();\n  lcd.backlight();`;
+      return `lcd.setCursor(${col}, ${row});\nlcd.print(${txt});\n`;
+    };
+
+    Blockly.Blocks['display_oled_print'] = {
+      init: function() {
+        this.appendValueInput("TEXT")
+            .appendField("🖥️ OLED 128x64 print");
+        this.appendValueInput("X")
+            .setCheck("Number")
+            .appendField("at X:");
+        this.appendValueInput("Y")
+            .setCheck("Number")
+            .appendField("Y:");
+        this.setInputsInline(true);
+        this.setPreviousStatement(true, null);
+        this.setNextStatement(true, null);
+        this.setColour('#7C3AED');
+      }
+    };
+
+    ArduinoGenerator.forBlock['display_oled_print'] = function(block, generator) {
+      const txt = generator.valueToCode(block, 'TEXT', ArduinoGenerator.ORDER_ATOMIC) || '""';
+      const x = generator.valueToCode(block, 'X', ArduinoGenerator.ORDER_ATOMIC) || '0';
+      const y = generator.valueToCode(block, 'Y', ArduinoGenerator.ORDER_ATOMIC) || '0';
+
+      generator.includes_['wire'] = `#include <Wire.h>`;
+      generator.includes_['gfx'] = `#include <Adafruit_GFX.h>`;
+      generator.includes_['ssd1306'] = `#include <Adafruit_SSD1306.h>`;
+      generator.pioDeps_['ssd1306'] = 'adafruit/Adafruit SSD1306@^2.5.9';
+      generator.definitions_['oled_obj'] = `Adafruit_SSD1306 display(128, 64, &Wire, -1);`;
+      generator.setupCode_['oled_init'] =
+`if (!display.begin(SSD1306_SWITCHCAPVCC, 0x3C)) {
+    Serial.println(F("SSD1306 allocation failed"));
+  }
+  display.clearDisplay();
+  display.setTextSize(1);
+  display.setTextColor(SSD1306_WHITE);`;
+
+      return `display.setCursor(${x}, ${y});\ndisplay.println(${txt});\ndisplay.display();\n`;
+    };
+
+    // --- 3.45 WIFI, BLE & IOT BLOCKS (ARCHITECTURE-AWARE) ---
+    Blockly.Blocks['iot_wifi_connect'] = {
+      init: function() {
+        this.appendDummyInput()
+            .appendField("🌐 Connect WiFi  SSID:")
+            .appendField(new Blockly.FieldTextInput("MyLabWiFi"), "SSID")
+            .appendField("Password:")
+            .appendField(new Blockly.FieldTextInput("secret123"), "PASS");
+        this.setPreviousStatement(true, null);
+        this.setNextStatement(true, null);
+        this.setColour('#0D9488');
+        this.setTooltip("Automatically selects <WiFi.h> on ESP32 or <ESP8266WiFi.h> on ESP8266.");
+      }
+    };
+
+    ArduinoGenerator.forBlock['iot_wifi_connect'] = function(block, generator) {
+      const board = getActiveBoardProfile();
+      if (board.id !== 'esp32' && board.id !== 'esp8266') {
+        return `// Note: ${board.name} lacks built-in WiFi; switch Target Board to ESP32 or ESP8266.\n`;
+      }
+      const ssid = block.getFieldValue('SSID');
+      const pass = block.getFieldValue('PASS');
+      generator.includes_['wifi'] = `#include <${board.wifiHeader}>`;
+      generator.setupCode_['serial_begin'] = `Serial.begin(${board.baudRate});`;
+      generator.setupCode_['wifi_connect'] =
+`WiFi.mode(WIFI_STA);
+  WiFi.begin("${ssid}", "${pass}");
+  Serial.print("Connecting to WiFi");
+  while (WiFi.status() != WL_CONNECTED) {
+    delay(500);
+    Serial.print(".");
+  }
+  Serial.println("\\nConnected! IP: " + WiFi.localIP().toString());`;
+      return '';
+    };
+
+    Blockly.Blocks['iot_mqtt_publish'] = {
+      init: function() {
+        this.appendValueInput("PAYLOAD")
+            .appendField("📡 MQTT Publish  Broker:")
+            .appendField(new Blockly.FieldTextInput("broker.hivemq.com"), "BROKER")
+            .appendField("Topic:")
+            .appendField(new Blockly.FieldTextInput("arduino/telemetry"), "TOPIC")
+            .appendField("Value:");
+        this.setPreviousStatement(true, null);
+        this.setNextStatement(true, null);
+        this.setColour('#0D9488');
+      }
+    };
+
+    ArduinoGenerator.forBlock['iot_mqtt_publish'] = function(block, generator) {
+      const board = getActiveBoardProfile();
+      const broker = block.getFieldValue('BROKER');
+      const topic = block.getFieldValue('TOPIC');
+      const payload = generator.valueToCode(block, 'PAYLOAD', ArduinoGenerator.ORDER_NONE) || '""';
+      generator.includes_['wifi'] = `#include <${board.wifiHeader}>`;
+      generator.includes_['pubsub'] = `#include <PubSubClient.h>`;
+      generator.pioDeps_['pubsub'] = 'knolleary/PubSubClient@^2.8';
+      generator.definitions_['mqtt_client'] = `WiFiClient espClient;\nPubSubClient mqttClient(espClient);`;
+      generator.setupCode_['mqtt_setup'] = `mqttClient.setServer("${broker}", 1883);`;
+      return `if (!mqttClient.connected()) {\n  mqttClient.connect("ArduinoBlocksClient");\n}\nmqttClient.loop();\nmqttClient.publish("${topic}", String(${payload}).c_str());\n`;
+    };
+
+    Blockly.Blocks['iot_http_get'] = {
+      init: function() {
+        this.appendDummyInput()
+            .appendField("☁️ HTTP GET Request URL:")
+            .appendField(new Blockly.FieldTextInput("http://api.thingspeak.com/update?api_key=XYZ&field1=100"), "URL");
+        this.setPreviousStatement(true, null);
+        this.setNextStatement(true, null);
+        this.setColour('#0D9488');
+      }
+    };
+
+    ArduinoGenerator.forBlock['iot_http_get'] = function(block, generator) {
+      const board = getActiveBoardProfile();
+      if (board.id !== 'esp32' && board.id !== 'esp8266') {
+        return `// Note: HTTP GET requires ESP32 or ESP8266 target board.\n`;
+      }
+      const url = block.getFieldValue('URL');
+      generator.includes_['wifi'] = `#include <${board.wifiHeader}>`;
+      if (board.id === 'esp8266') {
+        generator.includes_['http'] = `#include <ESP8266HTTPClient.h>`;
+        return `if (WiFi.status() == WL_CONNECTED) {\n  WiFiClient client;\n  HTTPClient http;\n  http.begin(client, "${url}");\n  int httpCode = http.GET();\n  http.end();\n}\n`;
+      }
+      generator.includes_['http'] = `#include <HTTPClient.h>`;
+      return `if (WiFi.status() == WL_CONNECTED) {\n  HTTPClient http;\n  http.begin("${url}");\n  int httpCode = http.GET();\n  http.end();\n}\n`;
+    };
+
+    // --- 3.5 TIME & DELAYS ---
+    Blockly.Blocks['arduino_delay_ms'] = {
+      init: function() {
+        this.appendValueInput("MS")
+            .setCheck("Number")
+            .appendField("⏱️ delay");
+        this.appendDummyInput()
+            .appendField("milliseconds (ms)");
+        this.setInputsInline(true);
+        this.setPreviousStatement(true, null);
+        this.setNextStatement(true, null);
+        this.setColour('#E1116A');
+      }
+    };
+
+    ArduinoGenerator.forBlock['arduino_delay_ms'] = function(block, generator) {
+      const ms = generator.valueToCode(block, 'MS', ArduinoGenerator.ORDER_ATOMIC) || '1000';
+      return `delay(${ms});\n`;
+    };
+
+    Blockly.Blocks['arduino_delay_us'] = {
+      init: function() {
+        this.appendValueInput("US")
+            .setCheck("Number")
+            .appendField("⏱️ delayMicroseconds");
+        this.appendDummyInput()
+            .appendField("(µs)");
+        this.setInputsInline(true);
+        this.setPreviousStatement(true, null);
+        this.setNextStatement(true, null);
+        this.setColour('#E1116A');
+      }
+    };
+
+    ArduinoGenerator.forBlock['arduino_delay_us'] = function(block, generator) {
+      const us = generator.valueToCode(block, 'US', ArduinoGenerator.ORDER_ATOMIC) || '10';
+      return `delayMicroseconds(${us});\n`;
+    };
+
+    Blockly.Blocks['arduino_millis'] = {
+      init: function() {
+        this.appendDummyInput()
+            .appendField("⏱️ millis() [Uptime in ms]");
+        this.setOutput(true, 'Number');
+        this.setColour('#E1116A');
+      }
+    };
+
+    ArduinoGenerator.forBlock['arduino_millis'] = function() {
+      return ['millis()', ArduinoGenerator.ORDER_ATOMIC];
+    };
+
+    Blockly.Blocks['arduino_micros'] = {
+      init: function() {
+        this.appendDummyInput()
+            .appendField("⏱️ micros() [Uptime in µs]");
+        this.setOutput(true, 'Number');
+        this.setColour('#E1116A');
+      }
+    };
+
+    ArduinoGenerator.forBlock['arduino_micros'] = function() {
+      return ['micros()', ArduinoGenerator.ORDER_ATOMIC];
+    };
+
+    Blockly.Blocks['arduino_nonblocking_timer'] = {
+      init: function() {
+        this.appendValueInput("INTERVAL")
+            .setCheck("Number")
+            .appendField("⏱️ Every (Non-Blocking millis)")
+            .appendField(new Blockly.FieldTextInput("timer1"), "TIMER_ID")
+            .appendField("interval (ms):");
+        this.appendStatementInput("DO")
+            .setCheck(null)
+            .appendField("run without pausing loop:");
+        this.setInputsInline(true);
+        this.setPreviousStatement(true, null);
+        this.setNextStatement(true, null);
+        this.setColour('#E1116A');
+        this.setTooltip("Executes code periodically using millis() without blocking other sensors or interrupts.");
+      }
+    };
+
+    ArduinoGenerator.forBlock['arduino_nonblocking_timer'] = function(block, generator) {
+      const id = block.getFieldValue('TIMER_ID').replace(/[^a-zA-Z0-9_]/g, '_');
+      const interval = generator.valueToCode(block, 'INTERVAL', ArduinoGenerator.ORDER_ATOMIC) || '1000';
+      const branch = generator.statementToCode(block, 'DO') || '';
+      const varName = `prevMillis_${id}`;
+      generator.definitions_[varName] = `unsigned long ${varName} = 0;`;
+      return `if (millis() - ${varName} >= ${interval}) {\n  ${varName} = millis();\n${branch}}\n`;
+    };
+
+    // --- 3.6 SERIAL, EEPROM, I2C & SPI BUS BLOCKS ---
+    Blockly.Blocks['arduino_serial_print'] = {
+      init: function() {
+        this.appendValueInput("CONTENT")
+            .appendField("🖥️ Serial")
+            .appendField(new Blockly.FieldDropdown([["println (New Line)", "println"], ["print (Same Line)", "print"]]), "NEWLINE");
+        this.setPreviousStatement(true, null);
+        this.setNextStatement(true, null);
+        this.setColour('#059669');
+      }
+    };
+
+    ArduinoGenerator.forBlock['arduino_serial_print'] = function(block, generator) {
+      const board = getActiveBoardProfile();
+      const method = block.getFieldValue('NEWLINE');
+      const content = generator.valueToCode(block, 'CONTENT', ArduinoGenerator.ORDER_ATOMIC) || '""';
+      generator.setupCode_['serial_begin'] = `Serial.begin(${board.baudRate});`;
+      return `Serial.${method}(${content});\n`;
+    };
+
+    Blockly.Blocks['arduino_serial_available'] = {
+      init: function() {
+        this.appendDummyInput()
+            .appendField("🖥️ Serial.available() > 0");
+        this.setOutput(true, 'Boolean');
+        this.setColour('#059669');
+      }
+    };
+
+    ArduinoGenerator.forBlock['arduino_serial_available'] = function(block, generator) {
+      const board = getActiveBoardProfile();
+      generator.setupCode_['serial_begin'] = `Serial.begin(${board.baudRate});`;
+      return ['(Serial.available() > 0)', ArduinoGenerator.ORDER_RELATIONAL];
+    };
+
+    Blockly.Blocks['arduino_serial_read_string'] = {
+      init: function() {
+        this.appendDummyInput()
+            .appendField("🖥️ Serial.readStringUntil('\\n')");
+        this.setOutput(true, 'String');
+        this.setColour('#059669');
+      }
+    };
+
+    ArduinoGenerator.forBlock['arduino_serial_read_string'] = function(block, generator) {
+      const board = getActiveBoardProfile();
+      generator.setupCode_['serial_begin'] = `Serial.begin(${board.baudRate});`;
+      return ["Serial.readStringUntil('\\n')", ArduinoGenerator.ORDER_ATOMIC];
+    };
+
+    Blockly.Blocks['arduino_eeprom_write'] = {
+      init: function() {
+        this.appendValueInput("ADDR")
+            .setCheck("Number")
+            .appendField("💾 EEPROM.update(address:");
+        this.appendValueInput("VAL")
+            .setCheck("Number")
+            .appendField("byte value:");
+        this.appendDummyInput().appendField(")");
+        this.setInputsInline(true);
+        this.setPreviousStatement(true, null);
+        this.setNextStatement(true, null);
+        this.setColour('#059669');
+      }
+    };
+
+    ArduinoGenerator.forBlock['arduino_eeprom_write'] = function(block, generator) {
+      const board = getActiveBoardProfile();
+      const addr = generator.valueToCode(block, 'ADDR', ArduinoGenerator.ORDER_NONE) || '0';
+      const val = generator.valueToCode(block, 'VAL', ArduinoGenerator.ORDER_NONE) || '0';
+      generator.includes_['eeprom'] = `#include <EEPROM.h>`;
+      if (board.id === 'esp32' || board.id === 'esp8266' || board.id === 'pico') {
+        generator.setupCode_['eeprom_begin'] = `EEPROM.begin(512);`;
+        return `EEPROM.write(${addr}, ${val});\nEEPROM.commit();\n`;
+      }
+      return `EEPROM.update(${addr}, ${val});\n`;
+    };
+
+    Blockly.Blocks['arduino_eeprom_read'] = {
+      init: function() {
+        this.appendValueInput("ADDR")
+            .setCheck("Number")
+            .appendField("💾 EEPROM.read(address:");
+        this.appendDummyInput().appendField(")");
+        this.setInputsInline(true);
+        this.setOutput(true, 'Number');
+        this.setColour('#059669');
+      }
+    };
+
+    ArduinoGenerator.forBlock['arduino_eeprom_read'] = function(block, generator) {
+      const board = getActiveBoardProfile();
+      const addr = generator.valueToCode(block, 'ADDR', ArduinoGenerator.ORDER_NONE) || '0';
+      generator.includes_['eeprom'] = `#include <EEPROM.h>`;
+      if (board.id === 'esp32' || board.id === 'esp8266' || board.id === 'pico') {
+        generator.setupCode_['eeprom_begin'] = `EEPROM.begin(512);`;
+      }
+      return [`EEPROM.read(${addr})`, ArduinoGenerator.ORDER_ATOMIC];
+    };
+
+    Blockly.Blocks['arduino_i2c_write'] = {
+      init: function() {
+        this.appendValueInput("DATA")
+            .setCheck("Number")
+            .appendField("🔗 Wire (I2C) Send to Addr")
+            .appendField(new Blockly.FieldTextInput("0x27"), "ADDR")
+            .appendField("Byte:");
+        this.setInputsInline(true);
+        this.setPreviousStatement(true, null);
+        this.setNextStatement(true, null);
+        this.setColour('#059669');
+      }
+    };
+
+    ArduinoGenerator.forBlock['arduino_i2c_write'] = function(block, generator) {
+      const addr = block.getFieldValue('ADDR');
+      const data = generator.valueToCode(block, 'DATA', ArduinoGenerator.ORDER_NONE) || '0';
+      generator.includes_['wire'] = `#include <Wire.h>`;
+      generator.setupCode_['wire_begin'] = `Wire.begin();`;
+      return `Wire.beginTransmission(${addr});\nWire.write(${data});\nWire.endTransmission();\n`;
+    };
+
+    Blockly.Blocks['arduino_spi_transfer'] = {
+      init: function() {
+        this.appendValueInput("DATA")
+            .setCheck("Number")
+            .appendField("🔗 SPI.transfer(byte:");
+        this.appendDummyInput().appendField(")");
+        this.setInputsInline(true);
+        this.setOutput(true, 'Number');
+        this.setColour('#059669');
+      }
+    };
+
+    ArduinoGenerator.forBlock['arduino_spi_transfer'] = function(block, generator) {
+      const data = generator.valueToCode(block, 'DATA', ArduinoGenerator.ORDER_NONE) || '0x00';
+      generator.includes_['spi'] = `#include <SPI.h>`;
+      generator.setupCode_['spi_begin'] = `SPI.begin();`;
+      return [`SPI.transfer(${data})`, ArduinoGenerator.ORDER_ATOMIC];
+    };
+
+    // --- 3.7 TYPED VARIABLES, ARRAYS, STRUCTS & MATH ---
+    Blockly.Blocks['arduino_var_declare'] = {
+      init: function() {
+        this.appendValueInput("VALUE")
+            .appendField("📦 declare global")
+            .appendField(new Blockly.FieldDropdown([
+              ["int", "int"],
+              ["long", "long"],
+              ["unsigned long", "unsigned long"],
+              ["float", "float"],
+              ["double", "double"],
+              ["bool", "bool"],
+              ["byte (uint8_t)", "byte"],
+              ["char", "char"],
+              ["String", "String"]
+            ]), "TYPE")
+            .appendField(new Blockly.FieldTextInput("distanceCm"), "VAR")
+            .appendField("=");
+        this.setPreviousStatement(true, null);
+        this.setNextStatement(true, null);
+        this.setColour('#DB2777');
+      }
+    };
+
+    ArduinoGenerator.forBlock['arduino_var_declare'] = function(block, generator) {
+      const type = block.getFieldValue('TYPE');
+      const varName = block.getFieldValue('VAR').replace(/[^a-zA-Z0-9_]/g, '_');
+      const val = generator.valueToCode(block, 'VALUE', ArduinoGenerator.ORDER_ASSIGNMENT) || '0';
+      generator.definitions_['var_' + varName] = `${type} ${varName} = ${val};`;
+      return '';
+    };
+
+    Blockly.Blocks['arduino_var_set'] = {
+      init: function() {
+        this.appendValueInput("VALUE")
+            .appendField("📦 set")
+            .appendField(new Blockly.FieldTextInput("distanceCm"), "VAR")
+            .appendField("=");
+        this.setPreviousStatement(true, null);
+        this.setNextStatement(true, null);
+        this.setColour('#DB2777');
+      }
+    };
+
+    ArduinoGenerator.forBlock['arduino_var_set'] = function(block, generator) {
+      const varName = block.getFieldValue('VAR').replace(/[^a-zA-Z0-9_]/g, '_');
+      const val = generator.valueToCode(block, 'VALUE', ArduinoGenerator.ORDER_ASSIGNMENT) || '0';
+      if (!generator.definitions_['var_' + varName]) {
+        generator.definitions_['var_' + varName] = `long ${varName} = 0;`;
+      }
+      return `${varName} = ${val};\n`;
+    };
+
+    Blockly.Blocks['arduino_var_get'] = {
+      init: function() {
+        this.appendDummyInput()
+            .appendField("📦")
+            .appendField(new Blockly.FieldTextInput("distanceCm"), "VAR");
+        this.setOutput(true, null);
+        this.setColour('#DB2777');
+      }
+    };
+
+    ArduinoGenerator.forBlock['arduino_var_get'] = function(block) {
+      const varName = block.getFieldValue('VAR').replace(/[^a-zA-Z0-9_]/g, '_');
+      return [varName, ArduinoGenerator.ORDER_ATOMIC];
+    };
+
+    Blockly.Blocks['arduino_array_declare'] = {
+      init: function() {
+        this.appendDummyInput()
+            .appendField("📦 declare array")
+            .appendField(new Blockly.FieldDropdown([["int", "int"], ["float", "float"], ["byte", "byte"], ["long", "long"], ["String", "String"]]), "TYPE")
+            .appendField(new Blockly.FieldTextInput("sensorPins"), "NAME")
+            .appendField("[")
+            .appendField(new Blockly.FieldTextInput("4"), "SIZE")
+            .appendField("] = {")
+            .appendField(new Blockly.FieldTextInput("2, 3, 4, 5"), "VALUES")
+            .appendField("};");
+        this.setPreviousStatement(true, null);
+        this.setNextStatement(true, null);
+        this.setColour('#DB2777');
+      }
+    };
+
+    ArduinoGenerator.forBlock['arduino_array_declare'] = function(block, generator) {
+      const type = block.getFieldValue('TYPE');
+      const name = block.getFieldValue('NAME').replace(/[^a-zA-Z0-9_]/g, '_');
+      const size = block.getFieldValue('SIZE').trim();
+      const vals = block.getFieldValue('VALUES').trim();
+      generator.definitions_['arr_' + name] = `${type} ${name}[${size}] = {${vals}};`;
+      return '';
+    };
+
+    Blockly.Blocks['arduino_array_get'] = {
+      init: function() {
+        this.appendValueInput("INDEX")
+            .setCheck("Number")
+            .appendField("📦 array")
+            .appendField(new Blockly.FieldTextInput("sensorPins"), "NAME")
+            .appendField("[");
+        this.appendDummyInput().appendField("]");
+        this.setInputsInline(true);
+        this.setOutput(true, null);
+        this.setColour('#DB2777');
+      }
+    };
+
+    ArduinoGenerator.forBlock['arduino_array_get'] = function(block, generator) {
+      const name = block.getFieldValue('NAME').replace(/[^a-zA-Z0-9_]/g, '_');
+      const idx = generator.valueToCode(block, 'INDEX', ArduinoGenerator.ORDER_NONE) || '0';
+      return [`${name}[${idx}]`, ArduinoGenerator.ORDER_ATOMIC];
+    };
+
+    Blockly.Blocks['arduino_array_set'] = {
+      init: function() {
+        this.appendValueInput("INDEX")
+            .setCheck("Number")
+            .appendField("📦 set array")
+            .appendField(new Blockly.FieldTextInput("sensorPins"), "NAME")
+            .appendField("[");
+        this.appendValueInput("VAL")
+            .appendField("] =");
+        this.setInputsInline(true);
+        this.setPreviousStatement(true, null);
+        this.setNextStatement(true, null);
+        this.setColour('#DB2777');
+      }
+    };
+
+    ArduinoGenerator.forBlock['arduino_array_set'] = function(block, generator) {
+      const name = block.getFieldValue('NAME').replace(/[^a-zA-Z0-9_]/g, '_');
+      const idx = generator.valueToCode(block, 'INDEX', ArduinoGenerator.ORDER_NONE) || '0';
+      const val = generator.valueToCode(block, 'VAL', ArduinoGenerator.ORDER_ASSIGNMENT) || '0';
+      return `${name}[${idx}] = ${val};\n`;
+    };
+
+    Blockly.Blocks['arduino_struct_define'] = {
+      init: function() {
+        this.appendDummyInput()
+            .appendField("📦 define struct")
+            .appendField(new Blockly.FieldTextInput("TelemetryPacket"), "NAME")
+            .appendField("{")
+            .appendField(new Blockly.FieldTextInput("int id; float temp; bool alarm;"), "FIELDS")
+            .appendField("};");
+        this.setPreviousStatement(true, null);
+        this.setNextStatement(true, null);
+        this.setColour('#DB2777');
+      }
+    };
+
+    ArduinoGenerator.forBlock['arduino_struct_define'] = function(block, generator) {
+      const name = block.getFieldValue('NAME').replace(/[^a-zA-Z0-9_]/g, '_');
+      const fields = block.getFieldValue('FIELDS').trim();
+      generator.definitions_['struct_' + name] = `struct ${name} { ${fields} };`;
+      return '';
+    };
+
+    Blockly.Blocks['arduino_math_map'] = {
+      init: function() {
+        this.appendValueInput("VAL").setCheck("Number").appendField("🧮 map(");
+        this.appendValueInput("FROMLOW").setCheck("Number").appendField("fromLow:");
+        this.appendValueInput("FROMHIGH").setCheck("Number").appendField("fromHigh:");
+        this.appendValueInput("TOLOW").setCheck("Number").appendField("toLow:");
+        this.appendValueInput("TOHIGH").setCheck("Number").appendField("toHigh:");
+        this.appendDummyInput().appendField(")");
+        this.setInputsInline(true);
+        this.setOutput(true, "Number");
+        this.setColour('#2563EB');
+      }
+    };
+
+    ArduinoGenerator.forBlock['arduino_math_map'] = function(block, generator) {
+      const val = generator.valueToCode(block, 'VAL', ArduinoGenerator.ORDER_NONE) || '0';
+      const fl = generator.valueToCode(block, 'FROMLOW', ArduinoGenerator.ORDER_NONE) || '0';
+      const fh = generator.valueToCode(block, 'FROMHIGH', ArduinoGenerator.ORDER_NONE) || '1023';
+      const tl = generator.valueToCode(block, 'TOLOW', ArduinoGenerator.ORDER_NONE) || '0';
+      const th = generator.valueToCode(block, 'TOHIGH', ArduinoGenerator.ORDER_NONE) || '180';
+      return [`map(${val}, ${fl}, ${fh}, ${tl}, ${th})`, ArduinoGenerator.ORDER_ATOMIC];
+    };
+
+    Blockly.Blocks['arduino_math_constrain'] = {
+      init: function() {
+        this.appendValueInput("VAL").setCheck("Number").appendField("🧮 constrain(");
+        this.appendValueInput("LOW").setCheck("Number").appendField("min:");
+        this.appendValueInput("HIGH").setCheck("Number").appendField("max:");
+        this.appendDummyInput().appendField(")");
+        this.setInputsInline(true);
+        this.setOutput(true, "Number");
+        this.setColour('#2563EB');
+      }
+    };
+
+    ArduinoGenerator.forBlock['arduino_math_constrain'] = function(block, generator) {
+      const val = generator.valueToCode(block, 'VAL', ArduinoGenerator.ORDER_NONE) || '0';
+      const low = generator.valueToCode(block, 'LOW', ArduinoGenerator.ORDER_NONE) || '0';
+      const high = generator.valueToCode(block, 'HIGH', ArduinoGenerator.ORDER_NONE) || '255';
+      return [`constrain(${val}, ${low}, ${high})`, ArduinoGenerator.ORDER_ATOMIC];
+    };
+
+    Blockly.Blocks['arduino_math_random'] = {
+      init: function() {
+        this.appendValueInput("MIN").setCheck("Number").appendField("🎲 random(min:");
+        this.appendValueInput("MAX").setCheck("Number").appendField("max:");
+        this.appendDummyInput().appendField(")");
+        this.setInputsInline(true);
+        this.setOutput(true, "Number");
+        this.setColour('#2563EB');
+      }
+    };
+
+    ArduinoGenerator.forBlock['arduino_math_random'] = function(block, generator) {
+      const min = generator.valueToCode(block, 'MIN', ArduinoGenerator.ORDER_NONE) || '0';
+      const max = generator.valueToCode(block, 'MAX', ArduinoGenerator.ORDER_NONE) || '100';
+      return [`random(${min}, ${max})`, ArduinoGenerator.ORDER_ATOMIC];
+    };
+
+    Blockly.Blocks['arduino_type_cast'] = {
+      init: function() {
+        this.appendValueInput("VAL")
+            .appendField("🧮 cast to")
+            .appendField(new Blockly.FieldDropdown([["(float)", "float"], ["(int)", "int"], ["(long)", "long"], ["(byte)", "byte"], ["String(...)", "String"]]), "TYPE");
+        this.setOutput(true, null);
+        this.setColour('#2563EB');
+      }
+    };
+
+    ArduinoGenerator.forBlock['arduino_type_cast'] = function(block, generator) {
+      const type = block.getFieldValue('TYPE');
+      const val = generator.valueToCode(block, 'VAL', ArduinoGenerator.ORDER_NONE) || '0';
+      if (type === 'String') return [`String(${val})`, ArduinoGenerator.ORDER_ATOMIC];
+      return [`((${type})(${val}))`, ArduinoGenerator.ORDER_UNARY_PREFIX];
+    };
+
+    // --- 3.75 BITWISE, SWITCH-CASE & CUSTOM FOR-LOOPS ---
+    Blockly.Blocks['arduino_bitwise_op'] = {
+      init: function() {
+        this.appendValueInput("A").setCheck("Number");
+        this.appendDummyInput()
+            .appendField(new Blockly.FieldDropdown([
+              ["& (Bitwise AND)", "&"],
+              ["| (Bitwise OR)", "|"],
+              ["^ (Bitwise XOR)", "^"],
+              ["<< (Shift Left)", "<<"],
+              [">> (Shift Right)", ">>"]
+            ]), "OP");
+        this.appendValueInput("B").setCheck("Number");
+        this.setInputsInline(true);
+        this.setOutput(true, "Number");
+        this.setColour('#4F46E5');
+      }
+    };
+
+    ArduinoGenerator.forBlock['arduino_bitwise_op'] = function(block, generator) {
+      const a = generator.valueToCode(block, 'A', ArduinoGenerator.ORDER_NONE) || '0';
+      const op = block.getFieldValue('OP');
+      const b = generator.valueToCode(block, 'B', ArduinoGenerator.ORDER_NONE) || '0';
+      return [`(${a} ${op} ${b})`, ArduinoGenerator.ORDER_ATOMIC];
+    };
+
+    Blockly.Blocks['arduino_bit_manip'] = {
+      init: function() {
+        this.appendValueInput("X").setCheck("Number")
+            .appendField(new Blockly.FieldDropdown([
+              ["bitRead(val, bit)", "bitRead"],
+              ["bitSet(val, bit)", "bitSet"],
+              ["bitClear(val, bit)", "bitClear"],
+              ["lowByte(val)", "lowByte"],
+              ["highByte(val)", "highByte"]
+            ]), "FUNC")
+            .appendField("val:");
+        this.appendValueInput("N").setCheck("Number").appendField("bit:");
+        this.setInputsInline(true);
+        this.setOutput(true, "Number");
+        this.setColour('#4F46E5');
+      }
+    };
+
+    ArduinoGenerator.forBlock['arduino_bit_manip'] = function(block, generator) {
+      const fn = block.getFieldValue('FUNC');
+      const x = generator.valueToCode(block, 'X', ArduinoGenerator.ORDER_NONE) || '0';
+      const n = generator.valueToCode(block, 'N', ArduinoGenerator.ORDER_NONE) || '0';
+      if (fn === 'lowByte' || fn === 'highByte') {
+        return [`${fn}(${x})`, ArduinoGenerator.ORDER_ATOMIC];
+      }
+      return [`${fn}(${x}, ${n})`, ArduinoGenerator.ORDER_ATOMIC];
+    };
+
+    Blockly.Blocks['arduino_switch_case'] = {
+      init: function() {
+        this.appendValueInput("SWITCH_VAL")
+            .appendField("🔀 switch (");
+        this.appendDummyInput().appendField(")");
+        this.appendStatementInput("CASE0_DO")
+            .appendField("case")
+            .appendField(new Blockly.FieldTextInput("1"), "CASE0")
+            .appendField(":");
+        this.appendStatementInput("CASE1_DO")
+            .appendField("case")
+            .appendField(new Blockly.FieldTextInput("2"), "CASE1")
+            .appendField(":");
+        this.appendStatementInput("DEFAULT_DO")
+            .appendField("default:");
+        this.setInputsInline(true);
+        this.setPreviousStatement(true, null);
+        this.setNextStatement(true, null);
+        this.setColour('#4F46E5');
+      }
+    };
+
+    ArduinoGenerator.forBlock['arduino_switch_case'] = function(block, generator) {
+      const val = generator.valueToCode(block, 'SWITCH_VAL', ArduinoGenerator.ORDER_NONE) || '0';
+      const c0 = block.getFieldValue('CASE0');
+      const c1 = block.getFieldValue('CASE1');
+      const d0 = generator.statementToCode(block, 'CASE0_DO') || '';
+      const d1 = generator.statementToCode(block, 'CASE1_DO') || '';
+      const def = generator.statementToCode(block, 'DEFAULT_DO') || '';
+      return `switch (${val}) {\n  case ${c0}:\n${d0}    break;\n  case ${c1}:\n${d1}    break;\n  default:\n${def}    break;\n}\n`;
+    };
+
+    Blockly.Blocks['arduino_for_custom'] = {
+      init: function() {
+        this.appendValueInput("FROM").setCheck("Number")
+            .appendField("🔁 for (int")
+            .appendField(new Blockly.FieldTextInput("i"), "VAR")
+            .appendField("=");
+        this.appendValueInput("TO").setCheck("Number")
+            .appendField("to <=");
+        this.appendValueInput("STEP").setCheck("Number")
+            .appendField("step +=");
+        this.appendStatementInput("DO")
+            .appendField(")");
+        this.setInputsInline(true);
+        this.setPreviousStatement(true, null);
+        this.setNextStatement(true, null);
+        this.setColour('#10B981');
+      }
+    };
+
+    ArduinoGenerator.forBlock['arduino_for_custom'] = function(block, generator) {
+      const v = block.getFieldValue('VAR').replace(/[^a-zA-Z0-9_]/g, '_');
+      const from = generator.valueToCode(block, 'FROM', ArduinoGenerator.ORDER_NONE) || '0';
+      const to = generator.valueToCode(block, 'TO', ArduinoGenerator.ORDER_NONE) || '10';
+      const step = generator.valueToCode(block, 'STEP', ArduinoGenerator.ORDER_NONE) || '1';
+      const branch = generator.statementToCode(block, 'DO') || '';
+      return `for (int ${v} = ${from}; ${v} <= ${to}; ${v} += ${step}) {\n${branch}}\n`;
+    };
+
+    Blockly.Blocks['arduino_loop_flow'] = {
+      init: function() {
+        this.appendDummyInput()
+            .appendField("🔁 loop control:")
+            .appendField(new Blockly.FieldDropdown([["break;", "break"], ["continue;", "continue"]]), "STAT");
+        this.setPreviousStatement(true, null);
+        this.setNextStatement(true, null);
+        this.setColour('#10B981');
+      }
+    };
+
+    ArduinoGenerator.forBlock['arduino_loop_flow'] = function(block) {
+      return block.getFieldValue('STAT') + ';\n';
+    };
+
+    // --- 3.8 STANDARD BLOCKLY LOGIC, LOOPS, MATH & TEXT GENERATORS ---
+    ArduinoGenerator.forBlock['controls_if'] = function(block, generator) {
+      let n = 0;
+      let code = '';
+      do {
+        const conditionCode = generator.valueToCode(block, 'IF' + n, ArduinoGenerator.ORDER_NONE) || 'false';
+        const branchCode = generator.statementToCode(block, 'DO' + n);
+        code += (n > 0 ? ' else ' : '') + `if (${conditionCode}) {\n${branchCode}}`;
+        n++;
+      } while (block.getInput('IF' + n));
+
+      if (block.getInput('ELSE')) {
+        const branchCode = generator.statementToCode(block, 'ELSE');
+        code += ` else {\n${branchCode}}`;
+      }
+      return code + '\n';
+    };
+
+    ArduinoGenerator.forBlock['logic_compare'] = function(block, generator) {
+      const OPERATORS = { 'EQ': '==', 'NEQ': '!=', 'LT': '<', 'LTE': '<=', 'GT': '>', 'GTE': '>=' };
+      const operator = OPERATORS[block.getFieldValue('OP')];
+      const order = (operator === '==' || operator === '!=') ? ArduinoGenerator.ORDER_EQUALITY : ArduinoGenerator.ORDER_RELATIONAL;
+      const arg0 = generator.valueToCode(block, 'A', order) || '0';
+      const arg1 = generator.valueToCode(block, 'B', order) || '0';
+      return [`${arg0} ${operator} ${arg1}`, order];
+    };
+
+    ArduinoGenerator.forBlock['logic_operation'] = function(block, generator) {
+      const operator = (block.getFieldValue('OP') === 'AND') ? '&&' : '||';
+      const order = (operator === '&&') ? ArduinoGenerator.ORDER_LOGICAL_AND : ArduinoGenerator.ORDER_LOGICAL_OR;
+      const arg0 = generator.valueToCode(block, 'A', order) || 'false';
+      const arg1 = generator.valueToCode(block, 'B', order) || 'false';
+      return [`${arg0} ${operator} ${arg1}`, order];
+    };
+
+    ArduinoGenerator.forBlock['logic_negate'] = function(block, generator) {
+      const arg0 = generator.valueToCode(block, 'BOOL', ArduinoGenerator.ORDER_UNARY_PREFIX) || 'true';
+      return [`!${arg0}`, ArduinoGenerator.ORDER_UNARY_PREFIX];
+    };
+
+    ArduinoGenerator.forBlock['logic_boolean'] = function(block) {
+      return [(block.getFieldValue('BOOL') === 'TRUE') ? 'true' : 'false', ArduinoGenerator.ORDER_ATOMIC];
+    };
+
+    ArduinoGenerator.forBlock['controls_repeat_ext'] = function(block, generator) {
+      const repeats = generator.valueToCode(block, 'TIMES', ArduinoGenerator.ORDER_RELATIONAL) || '10';
+      const branch = generator.statementToCode(block, 'DO');
+      const idx = generator.repeatCounter_++;
+      const loopVars = ['i', 'j', 'k'];
+      const loopVar = idx < loopVars.length ? loopVars[idx] : `idx_${idx}`;
+      return `for (int ${loopVar} = 0; ${loopVar} < ${repeats}; ${loopVar}++) {\n${branch}}\n`;
+    };
+
+    ArduinoGenerator.forBlock['controls_whileUntil'] = function(block, generator) {
+      const until = block.getFieldValue('MODE') === 'UNTIL';
+      let argument0 = generator.valueToCode(block, 'BOOL', until ? ArduinoGenerator.ORDER_UNARY_PREFIX : ArduinoGenerator.ORDER_NONE) || 'false';
+      const branch = generator.statementToCode(block, 'DO');
+      if (until) {
+        argument0 = '!' + argument0;
+      }
+      return `while (${argument0}) {\n${branch}}\n`;
+    };
+
+    ArduinoGenerator.forBlock['math_number'] = function(block) {
+      const code = Number(block.getFieldValue('NUM'));
+      return [String(code), code >= 0 ? ArduinoGenerator.ORDER_ATOMIC : ArduinoGenerator.ORDER_UNARY_PREFIX];
+    };
+
+    ArduinoGenerator.forBlock['math_arithmetic'] = function(block, generator) {
+      const OPERATORS = {
+        'ADD': [' + ', ArduinoGenerator.ORDER_ADDITIVE],
+        'MINUS': [' - ', ArduinoGenerator.ORDER_ADDITIVE],
+        'MULTIPLY': [' * ', ArduinoGenerator.ORDER_MULTIPLICATIVE],
+        'DIVIDE': [' / ', ArduinoGenerator.ORDER_MULTIPLICATIVE],
+        'POWER': [null, ArduinoGenerator.ORDER_NONE]
+      };
+      const tuple = OPERATORS[block.getFieldValue('OP')];
+      const operator = tuple[0];
+      const order = tuple[1];
+      const argument0 = generator.valueToCode(block, 'A', order) || '0';
+      const argument1 = generator.valueToCode(block, 'B', order) || '0';
+      if (!operator) {
+        return [`pow(${argument0}, ${argument1})`, ArduinoGenerator.ORDER_UNARY_POSTFIX];
+      }
+      return [argument0 + operator + argument1, order];
+    };
+
+    ArduinoGenerator.forBlock['text'] = function(block) {
+      const textValue = block.getFieldValue('TEXT')
+        .replace(/\\/g, '\\\\')
+        .replace(/"/g, '\\"');
+      return [`"${textValue}"`, ArduinoGenerator.ORDER_ATOMIC];
+    };
+
+    /***************************************************************************
+     * 4. WORKSPACE INITIALIZATION & PRESET EXAMPLES (XML)
+     ***************************************************************************/
+    let workspace = null;
+    let activeCodeTab = 'ino'; // 'ino' | 'pio'
+
+    const PRESET_EXAMPLES = {
+      radar: `
+        <xml xmlns="https://developers.google.com/blockly/xml">
+          <block type="arduino_setup_loop" x="28" y="24" deletable="false">
+            <statement name="SETUP">
+              <block type="arduino_comment">
+                <field name="TEXT">Initialize gate servo to closed position (0 deg)</field>
+                <next>
+                  <block type="actuator_servo_write">
+                    <field name="PIN">9</field>
+                    <value name="ANGLE">
+                      <shadow type="math_number"><field name="NUM">0</field></shadow>
+                    </value>
+                    <next>
+                      <block type="arduino_serial_print">
+                        <field name="NEWLINE">println</field>
+                        <value name="CONTENT">
+                          <shadow type="text"><field name="TEXT">Smart Ultrasonic Gate Initialized!</field></shadow>
+                        </value>
+                      </block>
+                    </next>
+                  </block>
+                </next>
+              </block>
+            </statement>
+            <statement name="LOOP">
+              <block type="arduino_var_set">
+                <field name="VAR">distanceCm</field>
+                <value name="VALUE">
+                  <block type="sensor_ultrasonic_cm">
+                    <field name="TRIG">10</field>
+                    <field name="ECHO">11</field>
+                  </block>
+                </value>
+                <next>
+                  <block type="arduino_serial_print">
+                    <field name="NEWLINE">println</field>
+                    <value name="CONTENT">
+                      <block type="arduino_var_get">
+                        <field name="VAR">distanceCm</field>
+                      </block>
+                    </value>
+                    <next>
+                      <block type="controls_if">
+                        <mutation else="1"></mutation>
+                        <value name="IF0">
+                          <block type="logic_compare">
+                            <field name="OP">LT</field>
+                            <value name="A">
+                              <block type="arduino_var_get">
+                                <field name="VAR">distanceCm</field>
+                              </block>
+                            </value>
+                            <value name="B">
+                              <block type="math_number">
+                                <field name="NUM">15</field>
+                              </block>
+                            </value>
+                          </block>
+                        </value>
+                        <statement name="DO0">
+                          <block type="component_set_state">
+                            <field name="COMP">Status_LED</field>
+                            <field name="STATE">HIGH</field>
+                            <next>
+                              <block type="actuator_servo_write">
+                                <field name="PIN">9</field>
+                                <value name="ANGLE">
+                                  <shadow type="math_number"><field name="NUM">90</field></shadow>
+                                </value>
+                              </block>
+                            </next>
+                          </block>
+                        </statement>
+                        <statement name="ELSE">
+                          <block type="component_set_state">
+                            <field name="COMP">Status_LED</field>
+                            <field name="STATE">LOW</field>
+                            <next>
+                              <block type="actuator_servo_write">
+                                <field name="PIN">9</field>
+                                <value name="ANGLE">
+                                  <shadow type="math_number"><field name="NUM">0</field></shadow>
+                                </value>
+                              </block>
+                            </next>
+                          </block>
+                        </statement>
+                        <next>
+                          <block type="arduino_delay_ms">
+                            <value name="MS">
+                              <shadow type="math_number"><field name="NUM">200</field></shadow>
+                            </value>
+                          </block>
+                        </next>
+                      </block>
+                    </next>
+                  </block>
+                </next>
+              </block>
+            </statement>
+          </block>
+        </xml>`,
+
+      interrupt_demo: `
+        <xml xmlns="https://developers.google.com/blockly/xml">
+          <block type="arduino_setup_loop" x="28" y="24" deletable="false">
+            <statement name="SETUP">
+              <block type="arduino_volatile_var">
+                <field name="TYPE">long</field>
+                <field name="VAR">pulseCount</field>
+                <value name="VALUE"><shadow type="math_number"><field name="NUM">0</field></shadow></value>
+                <next>
+                  <block type="arduino_var_declare">
+                    <field name="TYPE">long</field>
+                    <field name="VAR">safeCopy</field>
+                    <value name="VALUE"><shadow type="math_number"><field name="NUM">0</field></shadow></value>
+                    <next>
+                      <block type="arduino_attach_interrupt">
+                        <field name="PIN">2</field>
+                        <field name="MODE">FALLING</field>
+                        <field name="ISR_NAME">onEncoderPulse</field>
+                        <statement name="ISR_BODY">
+                          <block type="arduino_var_set">
+                            <field name="VAR">pulseCount</field>
+                            <value name="VALUE">
+                              <block type="math_arithmetic">
+                                <field name="OP">ADD</field>
+                                <value name="A"><block type="arduino_var_get"><field name="VAR">pulseCount</field></block></value>
+                                <value name="B"><shadow type="math_number"><field name="NUM">1</field></shadow></value>
+                              </block>
+                            </value>
+                          </block>
+                        </statement>
+                        <next>
+                          <block type="arduino_serial_print">
+                            <field name="NEWLINE">println</field>
+                            <value name="CONTENT"><shadow type="text"><field name="TEXT">Hardware Interrupt Attached on Pin D2!</field></shadow></value>
+                          </block>
+                        </next>
+                      </block>
+                    </next>
+                  </block>
+                </next>
+              </block>
+            </statement>
+            <statement name="LOOP">
+              <block type="arduino_nonblocking_timer">
+                <field name="TIMER_ID">printTimer</field>
+                <value name="INTERVAL"><shadow type="math_number"><field name="NUM">500</field></shadow></value>
+                <statement name="DO">
+                  <block type="arduino_interrupts_ctrl">
+                    <field name="ACTION">noInterrupts()</field>
+                    <next>
+                      <block type="arduino_var_set">
+                        <field name="VAR">safeCopy</field>
+                        <value name="VALUE"><block type="arduino_var_get"><field name="VAR">pulseCount</field></block></value>
+                        <next>
+                          <block type="arduino_interrupts_ctrl">
+                            <field name="ACTION">interrupts()</field>
+                            <next>
+                              <block type="arduino_serial_print">
+                                <field name="NEWLINE">println</field>
+                                <value name="CONTENT"><block type="arduino_var_get"><field name="VAR">safeCopy</field></block></value>
+                              </block>
+                            </next>
+                          </block>
+                        </next>
+                      </block>
+                    </next>
+                  </block>
+                </statement>
+              </block>
+            </statement>
+          </block>
+        </xml>`,
+
+      esp32_iot: `
+        <xml xmlns="https://developers.google.com/blockly/xml">
+          <block type="arduino_setup_loop" x="28" y="24" deletable="false">
+            <statement name="SETUP">
+              <block type="iot_wifi_connect">
+                <field name="SSID">SmartFactory_WiFi</field>
+                <field name="PASS">iotpass2025</field>
+              </block>
+            </statement>
+            <statement name="LOOP">
+              <block type="iot_mqtt_publish">
+                <field name="BROKER">broker.hivemq.com</field>
+                <field name="TOPIC">factory/node1/temperature</field>
+                <value name="PAYLOAD">
+                  <block type="sensor_dht_read">
+                    <field name="METRIC">readTemperature()</field>
+                    <field name="TYPE">DHT22</field>
+                    <field name="PIN">4</field>
+                  </block>
+                </value>
+                <next>
+                  <block type="arduino_delay_ms">
+                    <value name="MS"><shadow type="math_number"><field name="NUM">5000</field></shadow></value>
+                  </block>
+                </next>
+              </block>
+            </statement>
+          </block>
+        </xml>`,
+
+      i2c_hub: `
+        <xml xmlns="https://developers.google.com/blockly/xml">
+          <block type="arduino_setup_loop" x="28" y="24" deletable="false">
+            <statement name="SETUP">
+              <block type="arduino_comment">
+                <field name="TEXT">MPU6050 Accelerometer + 16x2 I2C LCD Telemetry</field>
+              </block>
+            </statement>
+            <statement name="LOOP">
+              <block type="arduino_var_set">
+                <field name="VAR">accelX</field>
+                <value name="VALUE">
+                  <block type="sensor_mpu6050_read">
+                    <field name="AXIS">getAccelerationX()</field>
+                  </block>
+                </value>
+                <next>
+                  <block type="display_lcd_i2c_print">
+                    <field name="ADDR">0x27</field>
+                    <value name="TEXT">
+                      <block type="arduino_var_get"><field name="VAR">accelX</field></block>
+                    </value>
+                    <value name="COL"><shadow type="math_number"><field name="NUM">0</field></shadow></value>
+                    <value name="ROW"><shadow type="math_number"><field name="NUM">0</field></shadow></value>
+                    <next>
+                      <block type="arduino_delay_ms">
+                        <value name="MS"><shadow type="math_number"><field name="NUM">250</field></shadow></value>
+                      </block>
+                    </next>
+                  </block>
+                </next>
+              </block>
+            </statement>
+          </block>
+        </xml>`,
+
+      custom_lib: `
+        <xml xmlns="https://developers.google.com/blockly/xml">
+          <block type="arduino_setup_loop" x="28" y="24" deletable="false">
+            <statement name="SETUP">
+              <block type="arduino_comment">
+                <field name="TEXT">Imported libraries auto-inject #include, global objects &amp; setup()!</field>
+              </block>
+            </statement>
+            <statement name="LOOP">
+              <block type="arduino_serial_print">
+                <field name="NEWLINE">println</field>
+                <value name="CONTENT">
+                  <block type="lib_imported_value">
+                    <field name="LIB_METHOD">1:::pzem.voltage()</field>
+                  </block>
+                </value>
+                <next>
+                  <block type="lib_imported_call">
+                    <field name="LIB_METHOD">0:::FastLED.show()</field>
+                    <next>
+                      <block type="arduino_delay_ms">
+                        <value name="MS"><shadow type="math_number"><field name="NUM">1000</field></shadow></value>
+                      </block>
+                    </next>
+                  </block>
+                </next>
+              </block>
+            </statement>
+          </block>
+        </xml>`,
+
+      blink: `
+        <xml xmlns="https://developers.google.com/blockly/xml">
+          <block type="arduino_setup_loop" x="35" y="30" deletable="false">
+            <statement name="SETUP">
+              <block type="arduino_comment">
+                <field name="TEXT">pinMode is automatically injected above!</field>
+              </block>
+            </statement>
+            <statement name="LOOP">
+              <block type="arduino_digital_write">
+                <field name="PIN">13</field>
+                <field name="STATE">HIGH</field>
+                <next>
+                  <block type="arduino_delay_ms">
+                    <value name="MS"><shadow type="math_number"><field name="NUM">500</field></shadow></value>
+                    <next>
+                      <block type="arduino_digital_write">
+                        <field name="PIN">13</field>
+                        <field name="STATE">LOW</field>
+                        <next>
+                          <block type="arduino_delay_ms">
+                            <value name="MS"><shadow type="math_number"><field name="NUM">500</field></shadow></value>
+                          </block>
+                        </next>
+                      </block>
+                    </next>
+                  </block>
+                </next>
+              </block>
+            </statement>
+          </block>
+        </xml>`
+    };
+
+    /***************************************************************************
+     * 5. SYNTAX HIGHLIGHTER, PLATFORMIO GENERATOR & UI UPDATERS
+     ***************************************************************************/
+    function generatePlatformioIni() {
+      const board = getActiveBoardProfile();
+      const deps = Object.values(ArduinoGenerator.pioDeps_ || {});
+      customImportedLibraries.forEach(cLib => {
+        const baseName = cLib.header.replace('.h', '');
+        if (!deps.includes(baseName)) deps.push(baseName);
+      });
+
+      let ini = `; ============================================================\n`;
+      ini += `; PlatformIO Project Configuration File (platformio.ini)\n`;
+      ini += `; Auto-generated by ArduinoBlocks Studio for ${board.name}\n`;
+      ini += `; ============================================================\n\n`;
+      ini += `[env:${board.pioEnv}]\n`;
+      ini += `platform = ${board.pioPlatform}\n`;
+      ini += `board = ${board.pioBoard}\n`;
+      ini += `framework = arduino\n`;
+      ini += `monitor_speed = ${board.baudRate}\n`;
+
+      if (deps.length > 0) {
+        ini += `lib_deps =\n`;
+        deps.forEach(d => {
+          ini += `  ${d}\n`;
+        });
+      }
+      return ini;
+    }
+
+    function switchCodeTab(tab) {
+      activeCodeTab = tab;
+      const btnIno = document.getElementById('tabBtnIno');
+      const btnPio = document.getElementById('tabBtnPio');
+      if (tab === 'ino') {
+        btnIno.className = 'px-2.5 py-1 rounded-md bg-teal-500/15 text-teal-300 border border-teal-500/30 font-mono text-xs font-semibold flex items-center gap-1.5 transition';
+        btnPio.className = 'px-2.5 py-1 rounded-md bg-slate-800/70 hover:bg-slate-800 text-slate-400 font-mono text-xs font-medium flex items-center gap-1.5 transition';
+      } else {
+        btnPio.className = 'px-2.5 py-1 rounded-md bg-purple-500/15 text-purple-300 border border-purple-500/30 font-mono text-xs font-semibold flex items-center gap-1.5 transition';
+        btnIno.className = 'px-2.5 py-1 rounded-md bg-slate-800/70 hover:bg-slate-800 text-slate-400 font-mono text-xs font-medium flex items-center gap-1.5 transition';
+      }
+      updateArduinoCode();
+    }
+
+    function highlightCpp(rawCode) {
+      // Escape HTML entities first
+      let html = rawCode
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;');
+
+      // Tokenize strings and comments first with placeholders so inner words aren't highlighted
+      const placeholders = [];
+      const saveToken = (match, cls) => {
+        const id = `___TOK_${placeholders.length}___`;
+        placeholders.push(`<span class="${cls}">${match}</span>`);
+        return id;
+      };
+
+      // Comments (C++ // and /* */ for .ino, or ; only for platformio.ini)
+      if (activeCodeTab === 'pio') {
+        html = html.replace(/(;.*$)/gm, m => saveToken(m, 'tok-comment'));
+      } else {
+        html = html.replace(/(\/\*[\s\S]*?\*\/|\/\/.*$)/gm, m => saveToken(m, 'tok-comment'));
+      }
+      // Preprocessor #include
+      html = html.replace(/^#include\s+(&lt;[^&]+&gt;|"[^"]+")/gm, m => saveToken(m, 'tok-directive'));
+      // Strings
+      html = html.replace(/"(?:\\.|[^"\\])*"/g, m => saveToken(m, 'tok-str'));
+
+      // C++ Keywords & Arduino Types
+      html = html.replace(/\b(void|if|else|for|while|switch|case|default|break|continue|return|struct|volatile|IRAM_ATTR|true|false)\b/g, '<span class="tok-keyword">$1</span>');
+      html = html.replace(/\b(int|long|unsigned|float|double|bool|byte|char|String|const|Servo|DHT|MPU6050|LiquidCrystal_I2C|WiFiClient|PubSubClient|HTTPClient|Adafruit_SSD1306)\b/g, '<span class="tok-type">$1</span>');
+      html = html.replace(/\b(HIGH|LOW|RISING|FALLING|CHANGE|INPUT|OUTPUT|INPUT_PULLUP|LED_BUILTIN|MSBFIRST|LSBFIRST|WIFI_STA|WL_CONNECTED|A0|A1|A2|A3|A4|A5|DHT11|DHT22|SSD1306_WHITE|SSD1306_SWITCHCAPVCC)\b/g, '<span class="tok-const">$1</span>');
+      html = html.replace(/\b(setup|loop|pinMode|digitalWrite|digitalRead|analogRead|analogWrite|attachInterrupt|detachInterrupt|digitalPinToInterrupt|interrupts|noInterrupts|delay|delayMicroseconds|millis|micros|Serial|Wire|SPI|EEPROM|WiFi|println|print|available|readStringUntil|map|constrain|random|tone|noTone|pulseIn|shiftOut|bitRead|bitSet|bitClear|lowByte|highByte|readUltrasonicDistance|attach|write|begin|initialize|init|backlight|setCursor|publish)\b/g, '<span class="tok-func">$1</span>');
+      html = html.replace(/\b(\d+(\.\d+)?)\b/g, '<span class="tok-num">$1</span>');
+
+      // Restore placeholders
+      placeholders.forEach((markup, idx) => {
+        html = html.replace(`___TOK_${idx}___`, markup);
+      });
+
+      return html;
+    }
+
+    let currentRawCode = '';
+    let currentPioCode = '';
+
+    function updateArduinoCode() {
+      if (!workspace) return;
+      try {
+        currentRawCode = ArduinoGenerator.workspaceToCode(workspace);
+        currentPioCode = generatePlatformioIni();
+
+        const displayedCode = activeCodeTab === 'ino' ? currentRawCode : currentPioCode;
+        const codeEl = document.getElementById('arduinoCodeOutput');
+        codeEl.innerHTML = highlightCpp(displayedCode);
+
+        const lineCount = displayedCode.split('\n').length;
+        document.getElementById('lineCountBadge').textContent = `${lineCount} lines`;
+      } catch (err) {
+        console.error('Code generation error:', err);
+      }
+    }
+
+    function updateResourceInspector(includesList, setupList, defsList) {
+      const incEl = document.getElementById('inspectorIncludes');
+      const setEl = document.getElementById('inspectorSetup');
+      const defEl = document.getElementById('inspectorDefs');
+
+      incEl.innerHTML = includesList.length
+        ? includesList.map(i => `<div>${i.replace(/</g, '&lt;').replace(/>/g, '&gt;')}</div>`).join('')
+        : '<span class="text-slate-600">None required</span>';
+
+      setEl.innerHTML = setupList.length
+        ? setupList.map(s => `<div>${s.split('\n')[0]}</div>`).join('')
+        : '<span class="text-slate-600">No pins configured</span>';
+
+      defEl.innerHTML = defsList.length
+        ? defsList.map(d => `<div>${d.split('\n')[0]}</div>`).join('')
+        : '<span class="text-slate-600">No global objects</span>';
+
+      const total = includesList.length + setupList.length + defsList.length;
+      document.getElementById('activePinCount').textContent = `${total} Active Resource${total === 1 ? '' : 's'}`;
+    }
+
+    function ensureDefaultCustomLibs() {
+      const defaults = [
+        {
+          header: 'FastLED.h',
+          objectDecl: 'CRGB leds[30];',
+          setupCall: 'FastLED.addLeds<NEOPIXEL, 6>(leds, 30);',
+          defaultMethod: 'FastLED.show()',
+          methods: ['FastLED.show()', 'FastLED.clear()', 'FastLED.setBrightness(128)']
+        },
+        {
+          header: 'PZEM004Tv30.h',
+          objectDecl: 'PZEM004Tv30 pzem(11, 12);',
+          setupCall: '// PZEM Energy Monitor Ready',
+          defaultMethod: 'pzem.voltage()',
+          methods: ['pzem.voltage()', 'pzem.current()', 'pzem.power()', 'pzem.energy()', 'pzem.frequency()']
+        }
+      ];
+      defaults.forEach(d => {
+        if (!customImportedLibraries.some(c => c.header === d.header)) {
+          customImportedLibraries.push(d);
+        }
+      });
+    }
+
+    function loadSelectedExample(exampleKey) {
+      if (!workspace || !PRESET_EXAMPLES[exampleKey]) return;
+      if (exampleKey === 'esp32_iot') {
+        document.getElementById('boardSelect').value = 'esp32';
+        updateBoardBadgeUI();
+      }
+      if (exampleKey === 'custom_lib') {
+        ensureDefaultCustomLibs();
+        renderLibraryManagerUI();
+      }
+      workspace.clear();
+      const xml = Blockly.utils.xml.textToDom(PRESET_EXAMPLES[exampleKey]);
+      Blockly.Xml.domToWorkspace(xml, workspace);
+      updateArduinoCode();
+      saveStateToLocalStorage();
+    }
+
+    function resetWorkspace() {
+      if (!workspace) return;
+      workspace.clear();
+      const blankXml = `
+        <xml xmlns="https://developers.google.com/blockly/xml">
+          <block type="arduino_setup_loop" x="35" y="30" deletable="false"></block>
+        </xml>`;
+      Blockly.Xml.domToWorkspace(Blockly.utils.xml.textToDom(blankXml), workspace);
+      updateArduinoCode();
+      showToast('Workspace reset to blank setup() and loop()');
+    }
+
+    function updateBoardBadgeUI() {
+      const board = getActiveBoardProfile();
+      const specEl = document.getElementById('boardSpecText');
+      if (specEl) specEl.textContent = board.specsSummary;
+    }
+
+    function onBoardChange() {
+      const board = getActiveBoardProfile();
+      updateBoardBadgeUI();
+      populateComponentPinOptions();
+      const baudSel = document.getElementById('serialBaudSelect');
+      if (baudSel && (board.baudRate === 9600 || board.baudRate === 115200)) {
+        baudSel.value = String(board.baudRate);
+      }
+
+      // Validate existing pin fields on workspace blocks so they adapt cleanly to the new board's pinout
+      if (workspace) {
+        const allBlocks = workspace.getAllBlocks(false);
+        const validDigital = board.digitalPins.map(p => p[1]);
+        const validPwm = board.pwmPins.map(p => p[1]);
+        const validAnalog = board.analogPins.map(p => p[1]);
+
+        allBlocks.forEach(b => {
+          const pinField = b.getField('PIN');
+          if (pinField) {
+            const curVal = pinField.getValue();
+            if (b.type === 'arduino_analog_read' && !validAnalog.includes(curVal)) {
+              pinField.setValue(validAnalog[0]);
+            } else if ((b.type === 'arduino_analog_write' || b.type === 'actuator_servo_write') && !validPwm.includes(curVal)) {
+              pinField.setValue(validPwm[0]);
+            } else if (!validDigital.includes(curVal) && !validAnalog.includes(curVal)) {
+              pinField.setValue(validDigital[0]);
+            }
+          }
+        });
+      }
+
+      updateArduinoCode();
+      saveStateToLocalStorage();
+      showToast(`Switched to ${board.name} (${board.voltage} · ${board.adcBits}-bit ADC)`);
+    }
+
+    async function copyArduinoCode() {
+      const textToCopy = activeCodeTab === 'ino' ? currentRawCode : currentPioCode;
+      try {
+        if (navigator.clipboard && window.isSecureContext) {
+          await navigator.clipboard.writeText(textToCopy);
+        } else {
+          throw new Error('fallback');
+        }
+      } catch {
+        const tempTextArea = document.createElement('textarea');
+        tempTextArea.value = textToCopy;
+        document.body.appendChild(tempTextArea);
+        tempTextArea.select();
+        document.execCommand('copy');
+        document.body.removeChild(tempTextArea);
+      }
+      showToast(`${activeCodeTab === 'ino' ? 'Arduino C++ (.ino)' : 'platformio.ini'} copied to clipboard!`);
+    }
+
+    const STORAGE_KEY = 'arduinoblocks_studio_state_v1';
+
+    function collectProjectState() {
+      const xmlDom = Blockly.Xml.workspaceToDom(workspace);
+      return {
+        version: 1,
+        board: document.getElementById('boardSelect')?.value || 'uno',
+        xml: Blockly.Xml.domToText(xmlDom),
+        namedComponents,
+        curatedEnabledIds: CURATED_LIBRARIES.filter(l => l.enabled).map(l => l.id),
+        customImportedLibraries
+      };
+    }
+
+    function saveStateToLocalStorage() {
+      if (!workspace) return;
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(collectProjectState()));
+      } catch {}
+    }
+
+    function applyProjectState(state) {
+      if (!state || !workspace) return false;
+      if (state.board && BOARD_PROFILES[state.board]) {
+        document.getElementById('boardSelect').value = state.board;
+        updateBoardBadgeUI();
+      }
+      if (Array.isArray(state.namedComponents) && state.namedComponents.length > 0) {
+        namedComponents = state.namedComponents;
+        renderNamedComponentsUI();
+      }
+      if (Array.isArray(state.curatedEnabledIds)) {
+        CURATED_LIBRARIES.forEach(l => { l.enabled = state.curatedEnabledIds.includes(l.id); });
+      }
+      if (Array.isArray(state.customImportedLibraries)) {
+        customImportedLibraries = state.customImportedLibraries;
+      }
+      renderLibraryManagerUI();
+      if (state.xml) {
+        workspace.clear();
+        Blockly.Xml.domToWorkspace(Blockly.utils.xml.textToDom(state.xml), workspace);
+      }
+      updateArduinoCode();
+      return true;
+    }
+
+    function exportProjectFile() {
+      const json = JSON.stringify(collectProjectState(), null, 2);
+      const blob = new Blob([json], { type: 'application/json;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'sketch_project.ablocks';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      showToast('Saved project (.ablocks)');
+    }
+
+    function handleImportProjectFile(event) {
+      const file = event.target.files?.[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = () => {
+        try {
+          const text = String(reader.result || '');
+          if (text.trim().startsWith('<')) {
+            workspace.clear();
+            Blockly.Xml.domToWorkspace(Blockly.utils.xml.textToDom(text), workspace);
+            updateArduinoCode();
+          } else {
+            applyProjectState(JSON.parse(text));
+          }
+          saveStateToLocalStorage();
+          showToast(`Loaded "${file.name}"`);
+        } catch (err) {
+          showToast(`Could not load project: ${err.message}`);
+        } finally {
+          event.target.value = '';
+        }
+      };
+      reader.readAsText(file);
+    }
+
+    let serialPort = null;
+    let serialReader = null;
+    let serialKeepReading = false;
+
+    function toggleSerialMonitor() {
+      const drawer = document.getElementById('serialMonitorDrawer');
+      drawer.classList.toggle('hidden');
+      drawer.classList.toggle('flex');
+      if (workspace) setTimeout(() => Blockly.svgResize(workspace), 50);
+    }
+
+    async function toggleSerialConnection() {
+      if (serialPort) {
+        await disconnectSerial();
+        return;
+      }
+      if (!('serial' in navigator)) {
+        showToast('Web Serial requires Chrome or Edge over HTTPS / localhost.');
+        return;
+      }
+      try {
+        const baudRate = parseInt(document.getElementById('serialBaudSelect').value || '115200', 10);
+        serialPort = await navigator.serial.requestPort();
+        await serialPort.open({ baudRate });
+        serialKeepReading = true;
+        document.getElementById('serialConnectBtn').textContent = 'Disconnect';
+        document.getElementById('serialConnectBtn').className = 'px-2 py-0.5 rounded bg-rose-600 hover:bg-rose-500 text-white font-semibold text-[10px] transition';
+        document.getElementById('serialStatusDot').className = 'w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse';
+        const log = document.getElementById('serialOutputLog');
+        log.textContent += `[Connected @ ${baudRate} baud]\n`;
+        readSerialLoop();
+      } catch (err) {
+        serialPort = null;
+        if (err && err.name !== 'NotFoundError') showToast(`Serial error: ${err.message}`);
+      }
+    }
+
+    async function readSerialLoop() {
+      const decoder = new TextDecoderStream();
+      const inputDone = serialPort.readable.pipeTo(decoder.writable).catch(() => {});
+      serialReader = decoder.readable.getReader();
+      const log = document.getElementById('serialOutputLog');
+      try {
+        while (serialKeepReading) {
+          const { value, done } = await serialReader.read();
+          if (done) break;
+          if (value) {
+            log.textContent += value;
+            if (log.textContent.length > 20000) log.textContent = log.textContent.slice(-15000);
+            log.scrollTop = log.scrollHeight;
+          }
+        }
+      } catch {}
+      await inputDone;
+    }
+
+    async function sendSerialLine() {
+      if (!serialPort || !serialPort.writable) {
+        showToast('Connect a USB board first.');
+        return;
+      }
+      const input = document.getElementById('serialTxInput');
+      const text = input.value;
+      if (!text) return;
+      const writer = serialPort.writable.getWriter();
+      await writer.write(new TextEncoder().encode(text + '\n'));
+      writer.releaseLock();
+      input.value = '';
+    }
+
+    async function disconnectSerial() {
+      serialKeepReading = false;
+      try { if (serialReader) { await serialReader.cancel(); serialReader.releaseLock(); } } catch {}
+      serialReader = null;
+      try { if (serialPort) await serialPort.close(); } catch {}
+      serialPort = null;
+      document.getElementById('serialConnectBtn').textContent = 'Connect USB';
+      document.getElementById('serialConnectBtn').className = 'px-2 py-0.5 rounded bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-[10px] transition';
+      document.getElementById('serialStatusDot').className = 'w-1.5 h-1.5 rounded-full bg-slate-500';
+    }
+
+    function downloadInoFile() {
+      const isIno = activeCodeTab === 'ino';
+      const content = isIno ? currentRawCode : currentPioCode;
+      const filename = isIno ? 'sketch_arduino_blocks.ino' : 'platformio.ini';
+      const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      showToast(`Downloaded ${filename}`);
+    }
+
+    let toastTimer = null;
+    function showToast(msg) {
+      const banner = document.getElementById('toastBanner');
+      document.getElementById('toastMessage').textContent = msg;
+      banner.classList.remove('opacity-0', 'translate-y-2');
+      banner.classList.add('opacity-100', 'translate-y-0');
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => {
+        banner.classList.add('opacity-0', 'translate-y-2');
+        banner.classList.remove('opacity-100', 'translate-y-0');
+      }, 2400);
+    }
+
+    /***************************************************************************
+     * 6. BOOTSTRAP BLOCKLY ON WINDOW LOAD
+     ***************************************************************************/
+    window.addEventListener('load', () => {
+      renderNamedComponentsUI();
+      renderLibraryManagerUI();
+      updateBoardBadgeUI();
+
+      // Create custom dark theme for Blockly
+      const arduinoDarkTheme = Blockly.Theme.defineTheme('arduinoDark', {
+        'base': Blockly.Themes.Classic,
+        'componentStyles': {
+          'workspaceBackgroundColour': '#0b1120',
+          'toolboxBackgroundColour': '#111827',
+          'toolboxForegroundColour': '#f3f4f6',
+          'flyoutBackgroundColour': '#1e293b',
+          'flyoutForegroundColour': '#cbd5e1',
+          'flyoutOpacity': 0.96,
+          'scrollbarColour': '#334155',
+          'insertionMarkerColour': '#2dd4bf',
+          'insertionMarkerOpacity': 0.4,
+          'scrollbarOpacity': 0.6,
+          'cursorColour': '#2dd4bf'
+        }
+      });
+
+      const blocklyDiv = document.getElementById('blocklyDiv');
+      workspace = Blockly.inject(blocklyDiv, {
+        toolbox: document.getElementById('toolbox'),
+        theme: arduinoDarkTheme,
+        renderer: 'zelos', // Scratch / MIT App Inventor smooth rounded block style
+        grid: {
+          spacing: 24,
+          length: 3,
+          colour: '#1e293b',
+          snap: true
+        },
+        zoom: {
+          controls: true,
+          wheel: true,
+          startScale: 0.9,
+          maxScale: 2,
+          minScale: 0.4,
+          scaleSpeed: 1.1
+        },
+        trashcan: true,
+        move: {
+          scrollbars: true,
+          drag: true,
+          wheel: true
+        }
+      });
+
+      // Listen to any block change to regenerate Arduino C++ code & autosave live
+      workspace.addChangeListener((event) => {
+        updateArduinoCode();
+        if (!event.isUiEvent) saveStateToLocalStorage();
+      });
+
+      // Register dynamic flyout for "📚 Libraries & Custom .h" so every imported library
+      // automatically appears with its own ready-to-drag Action & Value blocks!
+      workspace.registerToolboxCategoryCallback('CUSTOM_LIBRARIES_FLYOUT', function(targetWorkspace) {
+        const xmlList = [];
+
+        // 1. Button at top of flyout to open Library Manager / .h Importer
+        const btn = document.createElement('button');
+        btn.setAttribute('text', '➕ Open Library Manager / Import .h Header...');
+        btn.setAttribute('callbackKey', 'OPEN_LIB_MANAGER_BTN');
+        xmlList.push(btn);
+
+        // 2. Pre-configured Action & Value blocks for EVERY imported library
+        customImportedLibraries.forEach((lib, idx) => {
+          const methods = (lib.methods && lib.methods.length > 0) ? lib.methods : [lib.defaultMethod];
+          methods.forEach(m => {
+            const comboVal = `${idx}:::${m}`;
+            // Statement / Action block
+            const stmtBlock = Blockly.utils.xml.textToDom(
+              `<xml><block type="lib_imported_call"><field name="LIB_METHOD">${comboVal}</field></block></xml>`
+            ).firstChild;
+            xmlList.push(stmtBlock);
+
+            // Value / Sensor-Read block
+            const valBlock = Blockly.utils.xml.textToDom(
+              `<xml><block type="lib_imported_value"><field name="LIB_METHOD">${comboVal}</field></block></xml>`
+            ).firstChild;
+            xmlList.push(valBlock);
+          });
+        });
+
+        // 3. Generic Manual Library Blocks (#include, Global Instance, setup() Init, Object.method)
+        const manualXml = `
+          <xml>
+            <block type="lib_include_custom">
+              <field name="HEADER">Wire.h</field>
+              <field name="BRACKET">ANGLE</field>
+            </block>
+            <block type="lib_global_instance">
+              <field name="DECL">LiquidCrystal_I2C lcd(0x27, 16, 2);</field>
+            </block>
+            <block type="lib_setup_init">
+              <field name="INIT_CODE">lcd.init(); lcd.backlight();</field>
+            </block>
+            <block type="lib_method_call_stmt">
+              <field name="OBJ">lcd</field>
+              <field name="METHOD">print</field>
+              <value name="ARGS">
+                <shadow type="text">
+                  <field name="TEXT">Hello Library!</field>
+                </shadow>
+              </value>
+            </block>
+            <block type="lib_method_call_val">
+              <field name="EXPR">mpu.getAccelerationX()</field>
+            </block>
+          </xml>`;
+        const manualDom = Blockly.utils.xml.textToDom(manualXml);
+        Array.from(manualDom.children).forEach(el => xmlList.push(el));
+
+        return xmlList;
+      });
+
+      workspace.registerButtonCallback('OPEN_LIB_MANAGER_BTN', function() {
+        openLibraryModal();
+      });
+
+      // Handle responsive resizing
+      window.addEventListener('resize', () => {
+        Blockly.svgResize(workspace);
+      });
+
+      // Restore saved session if available, otherwise load default example
+      let restored = false;
+      try {
+        const saved = localStorage.getItem(STORAGE_KEY);
+        if (saved) restored = applyProjectState(JSON.parse(saved));
+      } catch {}
+      if (!restored) loadSelectedExample('radar');
+    });
+  </script>
+</body>
+</html>
