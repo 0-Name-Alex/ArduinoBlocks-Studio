@@ -19,6 +19,8 @@
 
   <!-- Google Blockly (Pinned stable CDN version for reliable custom generator behavior) -->
   <script src="https://unpkg.com/blockly@10.4.3/blockly.min.js"></script>
+  <!-- JSZip (Pinned client-side .zip Arduino library extractor) -->
+  <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
 
   <script>
     tailwind.config = {
@@ -31,9 +33,9 @@
           },
           colors: {
             arduino: {
-              teal: '#00979D',
-              darkTeal: '#005C5F',
-              orange: '#E47128',
+              teal: '#0F766E',
+              darkTeal: '#115E59',
+              accent: '#14B8A6',
             }
           }
         }
@@ -42,130 +44,163 @@
   </script>
 
   <style>
-    /* Custom Scrollbars & Blockly Dark Theme Overrides */
+    /* Custom Scrollbars & Calm Studio Dark Theme */
     body {
       font-family: 'Inter', sans-serif;
       overflow: hidden;
       user-select: none;
+      background-color: #0b0f14;
     }
-    
+
     .code-scroll::-webkit-scrollbar {
       width: 8px;
       height: 8px;
     }
     .code-scroll::-webkit-scrollbar-track {
-      background: #0f172a;
+      background: #0b0f14;
     }
     .code-scroll::-webkit-scrollbar-thumb {
-      background: #334155;
+      background: #243040;
       border-radius: 4px;
     }
     .code-scroll::-webkit-scrollbar-thumb:hover {
-      background: #475569;
+      background: #334155;
     }
 
-    /* Customize Blockly Toolbox to match modern IDE aesthetics */
+    /* Calm Blockly Toolbox Aesthetics */
     .blocklyToolboxDiv {
-      background-color: #111827 !important;
-      border-right: 1px solid #1f2937 !important;
-      color: #f3f4f6 !important;
-      padding-top: 8px !important;
+      background-color: #10151d !important;
+      border-right: 1px solid #1e2734 !important;
+      color: #cbd5e1 !important;
+      padding-top: 6px !important;
     }
     .blocklyTreeRow {
       padding: 6px 12px !important;
-      margin: 3px 6px !important;
-      border-radius: 8px !important;
+      margin: 2px 6px !important;
+      border-radius: 7px !important;
       height: auto !important;
-      line-height: 22px !important;
-      transition: all 0.15s ease;
+      line-height: 21px !important;
+      transition: background-color 0.14s ease;
     }
     .blocklyTreeRow:hover {
-      background-color: #1f2937 !important;
+      background-color: #1a222d !important;
     }
     .blocklyTreeSelected {
-      background-color: #00979D !important;
+      background-color: #134e4a !important;
     }
     .blocklyTreeLabel {
       font-family: 'Inter', sans-serif !important;
-      font-size: 13px !important;
+      font-size: 12.5px !important;
       font-weight: 500 !important;
-      color: #e5e7eb !important;
+      color: #dbe3ed !important;
     }
     .blocklyFlyoutBackground {
-      fill: #1e293b !important;
-      fill-opacity: 0.96 !important;
+      fill: #141b24 !important;
+      fill-opacity: 0.97 !important;
     }
     .blocklyMainBackground {
       stroke: none !important;
     }
-    /* C++ Syntax Highlighting Classes */
-    .tok-directive { color: #c084fc; font-weight: 600; }
-    .tok-type { color: #38bdf8; font-weight: 600; }
-    .tok-keyword { color: #f472b6; font-weight: 600; }
-    .tok-func { color: #fde047; }
-    .tok-num { color: #fb923c; }
-    .tok-str { color: #4ade80; }
-    .tok-comment { color: #64748b; font-style: italic; }
-    .tok-const { color: #2dd4bf; font-weight: 600; }
+
+    /* Restrained One-Dark-Inspired C++ Syntax Highlighting */
+    .tok-directive { color: #b4a7d6; font-weight: 500; }
+    .tok-type { color: #7cb7d8; font-weight: 500; }
+    .tok-keyword { color: #c594c5; font-weight: 500; }
+    .tok-func { color: #d7ba7d; }
+    .tok-num { color: #d19a66; }
+    .tok-str { color: #8ab88a; }
+    .tok-comment { color: #607085; font-style: italic; }
+    .tok-const { color: #5fb3b3; font-weight: 500; }
+
+    /* Block <-> C++ Live Line Trace Highlighting */
+    .code-line {
+      display: flex;
+      align-items: flex-start;
+      padding: 1px 12px 1px 0;
+      border-left: 2px solid transparent;
+      min-width: max-content;
+      transition: background-color 0.14s ease, border-color 0.14s ease;
+    }
+    .code-line-active {
+      background-color: rgba(20, 184, 166, 0.11);
+      border-left-color: #2dd4bf;
+    }
+    .code-line-active .code-gutter {
+      color: #5eead4;
+      font-weight: 600;
+    }
+    .code-gutter {
+      width: 2.6rem;
+      padding-right: 0.75rem;
+      text-align: right;
+      color: #475569;
+      user-select: none;
+      flex-shrink: 0;
+    }
+    .code-content {
+      flex: 1;
+      white-space: pre;
+    }
+    .no-scrollbar::-webkit-scrollbar { display: none; }
+    .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
   </style>
 </head>
-<body class="bg-slate-950 text-slate-100 h-screen flex flex-col">
+<body class="bg-[#0b0f14] text-slate-200 h-screen flex flex-col">
 
   <!-- TOP NAVBAR -->
-  <header class="h-14 bg-slate-900 border-b border-slate-800 px-4 flex items-center justify-between shrink-0 z-20">
+  <header class="h-13 bg-[#10151d] border-b border-[#1e2734] px-4 py-2 flex items-center justify-between shrink-0 z-20">
     <!-- Brand & Title -->
     <div class="flex items-center gap-3">
-      <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-arduino-teal to-emerald-600 flex items-center justify-center shadow-lg shadow-teal-900/40">
-        <i class="fa-solid fa-microchip text-white text-lg"></i>
+      <div class="w-8 h-8 rounded-lg bg-[#115e59] border border-teal-700/50 flex items-center justify-center">
+        <i class="fa-solid fa-microchip text-teal-200 text-sm"></i>
       </div>
       <div>
         <div class="flex items-center gap-2">
-          <h1 class="font-bold text-base tracking-tight text-white">ArduinoBlocks <span class="text-teal-400">Studio</span></h1>
-          <span class="text-[10px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded-full bg-teal-500/15 text-teal-300 border border-teal-500/30">Universal Multi-Board + Library IDE</span>
+          <h1 class="font-semibold text-sm tracking-tight text-slate-100">ArduinoBlocks <span class="text-teal-400 font-medium">Studio</span></h1>
         </div>
-        <p class="text-[11px] text-slate-400 hidden sm:block">Dynamic Board Pinouts, Custom Library Importer &amp; Real-Time C++ Transpiler</p>
+        <p class="text-[11px] text-slate-500 hidden sm:block">Visual Multi-Board IDE &amp; Live C++ Inspector</p>
       </div>
     </div>
 
     <!-- Center Controls: Board & Examples -->
-    <div class="flex items-center gap-2 sm:gap-2.5">
+    <div class="flex items-center gap-2">
       <!-- Board Selector -->
-      <div class="flex items-center bg-slate-800/90 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs">
-        <i class="fa-solid fa-microchip text-teal-400 mr-2"></i>
-        <span class="text-slate-400 mr-1.5 hidden xl:inline">Target Board:</span>
-        <select id="boardSelect" onchange="onBoardChange()" class="bg-transparent text-slate-100 font-semibold focus:outline-none cursor-pointer">
-          <option value="uno" class="bg-slate-900">Arduino Uno / Nano (ATmega328P)</option>
-          <option value="mega" class="bg-slate-900">Arduino Mega 2560 (ATmega2560)</option>
-          <option value="esp32" class="bg-slate-900">ESP32 DevKit V1 (WiFi + BLE)</option>
-          <option value="esp8266" class="bg-slate-900">NodeMCU ESP8266 (WiFi)</option>
-          <option value="xiao_nrf52" class="bg-slate-900">Seeed XIAO nRF52840 (BLE 5.0)</option>
-          <option value="pico" class="bg-slate-900">Raspberry Pi Pico (RP2040)</option>
+      <div class="flex items-center bg-[#161d27] border border-[#253040] rounded-lg px-2.5 py-1.5 text-xs">
+        <i class="fa-solid fa-microchip text-slate-400 mr-2"></i>
+        <span class="text-slate-500 mr-1.5 hidden xl:inline">Board:</span>
+        <select id="boardSelect" onchange="onBoardChange()" class="bg-transparent text-slate-200 font-medium focus:outline-none cursor-pointer">
+          <option value="uno" class="bg-[#10151d]">Arduino Uno / Nano (ATmega328P)</option>
+          <option value="mega" class="bg-[#10151d]">Arduino Mega 2560 (ATmega2560)</option>
+          <option value="esp32" class="bg-[#10151d]">ESP32 DevKit V1 (WiFi + BLE)</option>
+          <option value="esp8266" class="bg-[#10151d]">NodeMCU ESP8266 (WiFi)</option>
+          <option value="xiao_nrf52" class="bg-[#10151d]">Seeed XIAO nRF52840 (BLE 5.0)</option>
+          <option value="pico" class="bg-[#10151d]">Raspberry Pi Pico (RP2040)</option>
         </select>
       </div>
 
       <!-- Preset Examples Selector -->
-      <div class="flex items-center bg-slate-800/90 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs">
-        <i class="fa-solid fa-bolt text-amber-400 mr-2"></i>
-        <span class="text-slate-400 mr-1.5 hidden xl:inline">Preset:</span>
-        <select id="exampleSelect" onchange="loadSelectedExample(this.value)" class="bg-transparent text-slate-100 font-medium focus:outline-none cursor-pointer">
-          <option value="radar" class="bg-slate-900">1. Ultrasonic Smart Gate + Servo</option>
-          <option value="interrupt_demo" class="bg-slate-900">2. Hardware Interrupt (ISR) + Volatile Counter</option>
-          <option value="esp32_iot" class="bg-slate-900">3. ESP32 WiFi + MQTT IoT Telemetry</option>
-          <option value="i2c_hub" class="bg-slate-900">4. Multi-Library I2C Hub (LCD + MPU6050)</option>
-          <option value="custom_lib" class="bg-slate-900">5. Custom Imported Library (.h) Demo</option>
-          <option value="blink" class="bg-slate-900">6. Classic Blink LED</option>
+      <div class="flex items-center bg-[#161d27] border border-[#253040] rounded-lg px-2.5 py-1.5 text-xs">
+        <i class="fa-solid fa-sliders text-slate-400 mr-2"></i>
+        <span class="text-slate-500 mr-1.5 hidden xl:inline">Preset:</span>
+        <select id="exampleSelect" onchange="loadSelectedExample(this.value)" class="bg-transparent text-slate-200 font-medium focus:outline-none cursor-pointer">
+          <option value="radar" class="bg-[#10151d]">1. Ultrasonic Smart Gate + Servo</option>
+          <option value="interrupt_demo" class="bg-[#10151d]">2. Hardware Interrupt (ISR) + Volatile Counter</option>
+          <option value="esp32_iot" class="bg-[#10151d]">3. ESP32 WiFi + MQTT IoT Telemetry</option>
+          <option value="i2c_hub" class="bg-[#10151d]">4. Multi-Library I2C Hub (LCD + MPU6050)</option>
+          <option value="custom_lib" class="bg-[#10151d]">5. Custom Imported Library (.h) Demo</option>
+          <option value="blink" class="bg-[#10151d]">6. Classic Blink LED</option>
         </select>
       </div>
 
       <!-- Undo / Redo / Reset -->
       <div class="flex items-center gap-1">
-        <button onclick="workspace && workspace.undo(false)" title="Undo (Ctrl+Z)" class="px-2 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 text-xs transition">
+        <button onclick="workspace && workspace.undo(false)" title="Undo (Ctrl+Z)" class="px-2 py-1.5 rounded-lg bg-[#161d27] hover:bg-[#1e2734] text-slate-300 border border-[#253040] text-xs transition">
           <i class="fa-solid fa-undo"></i>
         </button>
-        <button onclick="workspace && workspace.undo(true)" title="Redo (Ctrl+Y)" class="px-2 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 text-xs transition">
+        <button onclick="workspace && workspace.undo(true)" title="Redo (Ctrl+Y)" class="px-2 py-1.5 rounded-lg bg-[#161d27] hover:bg-[#1e2734] text-slate-300 border border-[#253040] text-xs transition">
           <i class="fa-solid fa-redo"></i>
         </button>
-        <button onclick="resetWorkspace()" title="Reset to blank Setup & Loop" class="px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-rose-950/60 text-slate-300 hover:text-rose-300 border border-slate-700 hover:border-rose-700/50 text-xs font-medium transition flex items-center gap-1.5">
+        <button onclick="resetWorkspace()" title="Reset to blank Setup & Loop" class="px-2.5 py-1.5 rounded-lg bg-[#161d27] hover:bg-[#23191d] text-slate-300 hover:text-rose-300 border border-[#253040] hover:border-rose-800/60 text-xs font-medium transition flex items-center gap-1.5">
           <i class="fa-solid fa-trash-can"></i>
           <span class="hidden 2xl:inline">Reset</span>
         </button>
@@ -173,33 +208,33 @@
     </div>
 
     <!-- Action Buttons -->
-    <div class="flex items-center gap-1.5 sm:gap-2">
+    <div class="flex items-center gap-1.5">
       <input id="projectFileInput" type="file" accept=".ablocks,.json,.xml" class="hidden" onchange="handleImportProjectFile(event)" />
-      <button onclick="exportProjectFile()" title="Save project & libraries (.ablocks)" class="px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 text-xs font-medium transition flex items-center gap-1.5">
-        <i class="fa-solid fa-floppy-disk text-sky-400"></i>
+      <button onclick="exportProjectFile()" title="Save project & libraries (.ablocks)" class="px-2.5 py-1.5 rounded-lg bg-[#161d27] hover:bg-[#1e2734] text-slate-300 border border-[#253040] text-xs font-medium transition flex items-center gap-1.5">
+        <i class="fa-solid fa-floppy-disk text-slate-400"></i>
         <span class="hidden 2xl:inline">Save</span>
       </button>
-      <button onclick="document.getElementById('projectFileInput').click()" title="Open saved .ablocks project" class="px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 text-xs font-medium transition flex items-center gap-1.5">
-        <i class="fa-regular fa-folder-open text-amber-400"></i>
+      <button onclick="document.getElementById('projectFileInput').click()" title="Open saved .ablocks project" class="px-2.5 py-1.5 rounded-lg bg-[#161d27] hover:bg-[#1e2734] text-slate-300 border border-[#253040] text-xs font-medium transition flex items-center gap-1.5">
+        <i class="fa-regular fa-folder-open text-slate-400"></i>
         <span class="hidden 2xl:inline">Open</span>
       </button>
-      <button onclick="openLibraryModal()" class="px-3 py-1.5 rounded-lg bg-purple-500/15 hover:bg-purple-500/25 text-purple-300 border border-purple-500/30 text-xs font-semibold transition flex items-center gap-1.5">
-        <i class="fa-solid fa-book-medical"></i>
-        <span class="hidden md:inline">Library Manager</span>
-        <span id="libCountPill" class="px-1.5 py-0.2 rounded-full bg-purple-500/30 text-purple-200 text-[10px]">0</span>
+      <button onclick="openLibraryModal()" class="px-2.5 py-1.5 rounded-lg bg-[#161d27] hover:bg-[#1e2734] text-slate-200 border border-[#253040] text-xs font-medium transition flex items-center gap-1.5">
+        <i class="fa-solid fa-book-open text-teal-400/80"></i>
+        <span class="hidden md:inline">Libraries</span>
+        <span id="libCountPill" class="px-1.5 py-0.2 rounded-full bg-slate-800 text-slate-300 text-[10px] border border-slate-700">0</span>
       </button>
 
-      <button onclick="openSimulatorModal()" class="px-3 py-1.5 rounded-lg bg-amber-500/15 hover:bg-amber-500/25 text-amber-300 border border-amber-500/30 text-xs font-semibold transition flex items-center gap-1.5">
-        <i class="fa-solid fa-circle-nodes"></i>
+      <button onclick="openSimulatorModal()" class="px-2.5 py-1.5 rounded-lg bg-[#161d27] hover:bg-[#1e2734] text-slate-200 border border-[#253040] text-xs font-medium transition flex items-center gap-1.5">
+        <i class="fa-solid fa-circle-nodes text-slate-400"></i>
         <span class="hidden lg:inline">Components</span>
       </button>
 
-      <button onclick="copyArduinoCode()" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-100 border border-slate-700 text-xs font-semibold transition flex items-center gap-1.5">
-        <i class="fa-regular fa-copy text-teal-400"></i>
+      <button onclick="copyArduinoCode()" class="px-2.5 py-1.5 rounded-lg bg-[#161d27] hover:bg-[#1e2734] text-slate-200 border border-[#253040] text-xs font-medium transition flex items-center gap-1.5">
+        <i class="fa-regular fa-copy text-slate-400"></i>
         <span>Copy</span>
       </button>
 
-      <button onclick="downloadInoFile()" class="px-3.5 py-1.5 rounded-lg bg-gradient-to-r from-arduino-teal to-teal-500 hover:from-teal-500 hover:to-teal-400 text-white text-xs font-semibold shadow-md shadow-teal-950 transition flex items-center gap-1.5">
+      <button onclick="downloadInoFile()" class="px-3 py-1.5 rounded-lg bg-[#0f766e] hover:bg-[#0d9488] text-white text-xs font-medium border border-teal-600/40 transition flex items-center gap-1.5">
         <i class="fa-solid fa-download"></i>
         <span class="hidden sm:inline">.ino</span>
       </button>
@@ -207,32 +242,32 @@
   </header>
 
   <!-- HARDWARE COMPONENT & BOARD SPECS BAR -->
-  <div class="bg-slate-900/90 border-b border-slate-800 px-4 py-1.5 flex items-center justify-between text-xs shrink-0 gap-4">
-    <div class="flex items-center gap-2 overflow-x-auto no-scrollbar py-0.5">
+  <div class="bg-[#0e131b] border-b border-[#1e2734] px-4 py-1.5 flex items-center justify-between text-xs shrink-0 gap-3">
+    <div class="flex items-center gap-2 overflow-x-auto no-scrollbar py-0.5 min-w-0 flex-1">
       <!-- Board Architecture Spec Pill -->
-      <div id="boardSpecsBadge" class="px-2.5 py-0.5 rounded-md bg-teal-950/80 border border-teal-700/50 text-teal-300 font-mono text-[11px] flex items-center gap-2 shrink-0">
-        <i class="fa-solid fa-cpu"></i>
+      <div id="boardSpecsBadge" class="px-2.5 py-0.5 rounded-md bg-[#141c26] border border-[#253040] text-slate-300 font-mono text-[11px] flex items-center gap-2 shrink-0">
+        <i class="fa-solid fa-microchip text-teal-500"></i>
         <span id="boardSpecText">ATmega328P · 5V · 10-bit ADC (0-1023) · 14 Digital / 6 Analog</span>
       </div>
 
-      <span class="text-slate-700">|</span>
+      <span class="text-slate-700 shrink-0">|</span>
 
-      <span class="text-[11px] font-semibold uppercase tracking-wider text-slate-400 flex items-center gap-1.5 shrink-0">
-        <i class="fa-solid fa-plug-circle-check text-amber-400"></i> Components:
+      <span class="text-[11px] font-medium text-slate-400 flex items-center gap-1.5 shrink-0">
+        Components:
       </span>
-      <div id="componentPillsContainer" class="flex items-center gap-1.5">
+      <div id="componentPillsContainer" class="flex items-center gap-1.5 shrink-0">
         <!-- Dynamically populated component badges -->
       </div>
-      <button onclick="openSimulatorModal()" class="px-2 py-0.5 rounded bg-amber-500/10 hover:bg-amber-500/20 text-amber-300 border border-amber-500/30 text-[11px] font-medium transition shrink-0">
+      <button onclick="openSimulatorModal()" class="px-2 py-0.5 rounded bg-[#161d27] hover:bg-[#1e2734] text-slate-300 border border-[#253040] text-[11px] font-medium transition shrink-0 whitespace-nowrap">
         + Component
       </button>
-      <button onclick="openLibraryModal()" class="px-2 py-0.5 rounded bg-purple-500/10 hover:bg-purple-500/20 text-purple-300 border border-purple-500/30 text-[11px] font-medium transition shrink-0">
-        + Import .h Library
+      <button onclick="openLibraryModal()" class="px-2 py-0.5 rounded bg-[#161d27] hover:bg-[#1e2734] text-teal-300/90 border border-[#253040] text-[11px] font-medium transition shrink-0 whitespace-nowrap">
+        + Import .zip / .h
       </button>
     </div>
 
-    <div class="hidden xl:flex items-center gap-3 text-[11px] text-slate-400 shrink-0">
-      <span><i class="fa-solid fa-wand-magic-sparkles text-purple-400 mr-1"></i>Board-aware <code class="text-slate-300">#include</code> &amp; pinout adaptation active</span>
+    <div class="hidden 2xl:flex items-center gap-2 text-[11px] text-slate-500 shrink-0">
+      <span>Click any block to highlight matching C++ lines</span>
     </div>
   </div>
 
@@ -245,106 +280,101 @@
       <div id="blocklyDiv" class="absolute inset-0"></div>
 
       <!-- Floating Quick-Tip Pill -->
-      <div class="absolute bottom-3 left-3 z-10 pointer-events-none hidden sm:flex items-center gap-2 bg-slate-900/90 backdrop-blur border border-slate-700/80 px-3 py-1.5 rounded-full text-[11px] text-slate-300 shadow-lg">
-        <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-        <span id="workspaceStatusHint">Pin dropdowns &amp; libraries automatically adapt to the selected board</span>
+      <div class="absolute bottom-3 left-3 z-10 pointer-events-none hidden sm:flex items-center gap-2 bg-[#10151d]/90 backdrop-blur border border-[#253040] px-3 py-1 rounded-full text-[11px] text-slate-400">
+        <span class="w-1.5 h-1.5 rounded-full bg-teal-500"></span>
+        <span id="workspaceStatusHint">Select any block to trace its generated C++</span>
       </div>
     </div>
 
     <!-- RIGHT PANEL: LIVE ARDUINO C++ CODE & HARDWARE INSPECTOR -->
-    <aside class="w-full lg:w-[470px] xl:w-[540px] bg-slate-900 border-t lg:border-t-0 lg:border-l border-slate-800 flex flex-col shrink-0 h-[44%] lg:h-full">
+    <aside class="w-full lg:w-[470px] xl:w-[550px] bg-[#10151d] border-t lg:border-t-0 lg:border-l border-[#1e2734] flex flex-col shrink-0 h-[44%] lg:h-full">
       
       <!-- Code Header Bar with Tabs (.ino vs platformio.ini) -->
-      <div class="px-3 py-2 bg-slate-900 border-b border-slate-800 flex items-center justify-between">
-        <div class="flex items-center gap-1.5">
-          <button id="tabBtnIno" onclick="switchCodeTab('ino')" class="px-2.5 py-1 rounded-md bg-teal-500/15 text-teal-300 border border-teal-500/30 font-mono text-xs font-semibold flex items-center gap-1.5 transition">
-            <span class="w-2 h-2 rounded-full bg-teal-400"></span>
-            sketch_arduino.ino
+      <div class="px-3 py-2 bg-[#10151d] border-b border-[#1e2734] flex flex-wrap items-center justify-between gap-1.5">
+        <div class="flex items-center gap-1.5 shrink-0">
+          <button id="tabBtnIno" onclick="switchCodeTab('ino')" class="px-2 py-1 rounded-md bg-teal-950/50 text-teal-300 border border-teal-700/40 font-mono text-[11px] font-medium flex items-center gap-1.5 transition whitespace-nowrap shrink-0">
+            <span class="w-1.5 h-1.5 rounded-full bg-teal-400"></span>
+            sketch.ino
           </button>
-          <button id="tabBtnPio" onclick="switchCodeTab('pio')" class="px-2.5 py-1 rounded-md bg-slate-800/70 hover:bg-slate-800 text-slate-400 font-mono text-xs font-medium flex items-center gap-1.5 transition">
-            <i class="fa-solid fa-gear text-purple-400 text-[11px]"></i>
+          <button id="tabBtnPio" onclick="switchCodeTab('pio')" class="px-2 py-1 rounded-md bg-[#161d27] hover:bg-[#1e2734] text-slate-400 border border-transparent font-mono text-[11px] font-medium flex items-center gap-1.5 transition whitespace-nowrap shrink-0">
+            <i class="fa-solid fa-gear text-slate-400 text-[10px]"></i>
             platformio.ini
           </button>
         </div>
-        <div class="flex items-center gap-2">
-          <button id="serialDrawerBtn" onclick="toggleSerialMonitor()" title="Live USB Web Serial Monitor (Chrome / Edge)" class="px-2 py-0.5 rounded bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 font-mono text-[11px] font-medium flex items-center gap-1.5 transition">
+        <div class="flex items-center gap-1.5 shrink-0">
+          <button id="blockTraceBadge" onclick="cycleTracedLineJump()" title="Click to jump between highlighted lines for the selected block" class="hidden px-2 py-0.5 rounded bg-teal-950/60 hover:bg-teal-900/60 text-teal-300 border border-teal-700/40 font-mono text-[10px] font-medium transition whitespace-nowrap shrink-0"></button>
+          <button id="serialDrawerBtn" onclick="toggleSerialMonitor()" title="Live USB Web Serial Monitor (Chrome / Edge)" class="px-2 py-0.5 rounded bg-[#161d27] hover:bg-[#1e2734] text-slate-300 border border-[#253040] font-mono text-[11px] font-medium flex items-center gap-1.5 transition whitespace-nowrap shrink-0">
             <span id="serialStatusDot" class="w-1.5 h-1.5 rounded-full bg-slate-500"></span>
             Serial
           </button>
-          <span id="lineCountBadge" class="text-[10px] font-mono px-2 py-0.5 rounded bg-slate-800 text-slate-400 border border-slate-700">0 lines</span>
+          <span id="lineCountBadge" class="text-[10px] font-mono px-2 py-0.5 rounded bg-[#161d27] text-slate-400 border border-[#253040] whitespace-nowrap shrink-0">0 lines</span>
         </div>
       </div>
 
       <!-- Syntax Highlighted Code Output -->
-      <div class="flex-1 bg-slate-950 overflow-auto code-scroll p-4 font-mono text-xs leading-relaxed select-text relative">
-        <pre id="arduinoCodeOutput" class="text-slate-200 whitespace-pre"></pre>
+      <div id="codeScrollContainer" class="flex-1 bg-[#0b0f14] overflow-auto code-scroll py-3 font-mono text-xs leading-relaxed select-text relative">
+        <div id="arduinoCodeOutput" class="text-slate-300"></div>
       </div>
 
       <!-- Collapsible Web Serial Monitor Drawer -->
-      <div id="serialMonitorDrawer" class="hidden border-t border-slate-800 bg-slate-950 flex-col h-48 shrink-0">
-        <div class="px-3 py-1.5 bg-slate-900/90 border-b border-slate-800 flex items-center justify-between text-[11px]">
+      <div id="serialMonitorDrawer" class="hidden border-t border-[#1e2734] bg-[#0b0f14] flex-col h-48 shrink-0">
+        <div class="px-3 py-1.5 bg-[#10151d] border-b border-[#1e2734] flex items-center justify-between text-[11px]">
           <div class="flex items-center gap-2">
-            <i class="fa-solid fa-terminal text-emerald-400"></i>
+            <i class="fa-solid fa-terminal text-teal-400"></i>
             <span class="font-semibold text-slate-200">USB Serial Monitor</span>
-            <select id="serialBaudSelect" class="bg-slate-800 border border-slate-700 rounded px-1.5 py-0.5 font-mono text-[10px] text-slate-200">
+            <select id="serialBaudSelect" class="bg-[#161d27] border border-[#253040] rounded px-1.5 py-0.5 font-mono text-[10px] text-slate-200">
               <option value="9600">9600 baud</option>
               <option value="115200" selected>115200 baud</option>
               <option value="57600">57600 baud</option>
             </select>
           </div>
           <div class="flex items-center gap-1.5">
-            <button id="serialConnectBtn" onclick="toggleSerialConnection()" class="px-2 py-0.5 rounded bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-[10px] transition">
+            <button id="serialConnectBtn" onclick="toggleSerialConnection()" class="px-2 py-0.5 rounded bg-[#0f766e] hover:bg-[#0d9488] text-white font-semibold text-[10px] transition">
               Connect USB
             </button>
-            <button onclick="document.getElementById('serialOutputLog').textContent = ''" class="px-2 py-0.5 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 text-[10px]">
+            <button onclick="document.getElementById('serialOutputLog').textContent = ''" class="px-2 py-0.5 rounded bg-[#161d27] hover:bg-[#1e2734] text-slate-300 text-[10px] border border-[#253040]">
               Clear
             </button>
           </div>
         </div>
-        <pre id="serialOutputLog" class="flex-1 p-2.5 overflow-auto code-scroll font-mono text-[11px] text-emerald-300/90 whitespace-pre-wrap select-text">Ready. Click "Connect USB" in Chrome or Edge to stream live Serial output from your board.
+        <pre id="serialOutputLog" class="flex-1 p-2.5 overflow-auto code-scroll font-mono text-[11px] text-slate-300 whitespace-pre-wrap select-text">Ready. Click "Connect USB" in Chrome or Edge to stream live Serial output from your board.
 </pre>
-        <div class="p-1.5 bg-slate-900 border-t border-slate-800 flex gap-1.5">
-          <input id="serialTxInput" type="text" placeholder="Send command over Serial (Enter)..." onkeydown="if(event.key==='Enter') sendSerialLine()" class="flex-1 bg-slate-950 border border-slate-700 rounded px-2 py-1 font-mono text-[11px] text-slate-100 focus:outline-none focus:border-emerald-500" />
-          <button onclick="sendSerialLine()" class="px-2.5 py-1 rounded bg-slate-800 hover:bg-slate-700 text-slate-200 text-[11px] font-semibold">Send</button>
+        <div class="p-1.5 bg-[#10151d] border-t border-[#1e2734] flex gap-1.5">
+          <input id="serialTxInput" type="text" placeholder="Send command over Serial (Enter)..." onkeydown="if(event.key==='Enter') sendSerialLine()" class="flex-1 bg-[#0b0f14] border border-[#253040] rounded px-2 py-1 font-mono text-[11px] text-slate-100 focus:outline-none focus:border-teal-600" />
+          <button onclick="sendSerialLine()" class="px-2.5 py-1 rounded bg-[#161d27] hover:bg-[#1e2734] border border-[#253040] text-slate-200 text-[11px] font-medium">Send</button>
         </div>
       </div>
 
       <!-- Bottom Hardware & Resource Inspector (Pinout & Auto-Setup Summary) -->
-      <div class="bg-slate-900 border-t border-slate-800 p-3.5 shrink-0">
+      <div class="bg-[#10151d] border-t border-[#1e2734] p-3 shrink-0">
         <div class="flex items-center justify-between mb-2">
           <span class="text-[11px] font-semibold uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
-            <i class="fa-solid fa-microchip text-teal-400"></i> Active Board &amp; Library Inspector
+            <i class="fa-solid fa-microchip text-teal-500"></i> Active Board &amp; Library Inspector
           </span>
-          <span id="activePinCount" class="text-[11px] font-medium text-teal-400">0 Active Resources</span>
+          <span id="activePinCount" class="text-[11px] font-medium text-slate-400">0 Active Resources</span>
         </div>
 
         <div class="grid grid-cols-3 gap-2 text-[11px]">
           <!-- Libraries Box -->
-          <div class="bg-slate-950/90 border border-slate-800 rounded-lg p-2">
-            <div class="text-slate-400 font-medium mb-1 flex items-center gap-1">
-              <i class="fa-solid fa-book-bookmark text-purple-400"></i> Header Includes
-            </div>
-            <div id="inspectorIncludes" class="font-mono text-[10px] text-purple-300 space-y-0.5 max-h-16 overflow-y-auto">
+          <div class="bg-[#0b0f14] border border-[#1e2734] rounded-lg p-2">
+            <div class="text-slate-400 font-medium mb-1">Headers</div>
+            <div id="inspectorIncludes" class="font-mono text-[10px] text-slate-300 space-y-0.5 max-h-16 overflow-y-auto">
               <span class="text-slate-600">None required</span>
             </div>
           </div>
 
           <!-- Active Pins Box -->
-          <div class="bg-slate-950/90 border border-slate-800 rounded-lg p-2">
-            <div class="text-slate-400 font-medium mb-1 flex items-center gap-1">
-              <i class="fa-solid fa-thumbtack text-amber-400"></i> Setup &amp; Bus Init
-            </div>
-            <div id="inspectorSetup" class="font-mono text-[10px] text-amber-300 space-y-0.5 max-h-16 overflow-y-auto">
+          <div class="bg-[#0b0f14] border border-[#1e2734] rounded-lg p-2">
+            <div class="text-slate-400 font-medium mb-1">Setup &amp; Init</div>
+            <div id="inspectorSetup" class="font-mono text-[10px] text-teal-300/90 space-y-0.5 max-h-16 overflow-y-auto">
               <span class="text-slate-600">No pins configured</span>
             </div>
           </div>
 
           <!-- Global Objects Box -->
-          <div class="bg-slate-950/90 border border-slate-800 rounded-lg p-2">
-            <div class="text-slate-400 font-medium mb-1 flex items-center gap-1">
-              <i class="fa-solid fa-cube text-sky-400"></i> Global Instances
-            </div>
-            <div id="inspectorDefs" class="font-mono text-[10px] text-sky-300 space-y-0.5 max-h-16 overflow-y-auto">
+          <div class="bg-[#0b0f14] border border-[#1e2734] rounded-lg p-2">
+            <div class="text-slate-400 font-medium mb-1">Global Objects</div>
+            <div id="inspectorDefs" class="font-mono text-[10px] text-slate-300 space-y-0.5 max-h-16 overflow-y-auto">
               <span class="text-slate-600">No global objects</span>
             </div>
           </div>
@@ -355,19 +385,19 @@
   </main>
 
   <!-- ==========================================================================
-       LIBRARY MANAGER & CUSTOM .H IMPORTER MODAL
+       LIBRARY MANAGER & CUSTOM .ZIP / .H IMPORTER MODAL
        ========================================================================== -->
-  <div id="libraryModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 hidden items-center justify-center p-4">
-    <div class="bg-slate-900 border border-slate-700 rounded-2xl max-w-4xl w-full shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
+  <div id="libraryModal" class="fixed inset-0 bg-black/75 backdrop-blur-sm z-[120] hidden items-center justify-center p-4">
+    <div class="bg-[#10151d] border border-[#253040] rounded-2xl max-w-4xl w-full shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
       <!-- Modal Header -->
-      <div class="px-5 py-4 border-b border-slate-800 flex items-center justify-between shrink-0">
+      <div class="px-5 py-4 border-b border-[#1e2734] flex items-center justify-between shrink-0">
         <div class="flex items-center gap-3">
-          <div class="w-9 h-9 rounded-xl bg-purple-500/20 border border-purple-500/40 flex items-center justify-center text-purple-300">
-            <i class="fa-solid fa-book-medical text-lg"></i>
+          <div class="w-9 h-9 rounded-xl bg-[#161d27] border border-[#253040] flex items-center justify-center text-teal-400">
+            <i class="fa-solid fa-book-open text-base"></i>
           </div>
           <div>
-            <h3 class="font-bold text-base text-white">Arduino &amp; IoT Library Manager + Custom <code class="text-purple-300">.h</code> Importer</h3>
-            <p class="text-xs text-slate-400">Toggle official libraries or import any third-party Arduino <code class="text-slate-300">.h</code> header &amp; class methods into blocks</p>
+            <h3 class="font-semibold text-base text-slate-100">Library Manager &amp; <code class="text-teal-300">.zip</code> / <code class="text-teal-300">.h</code> Importer</h3>
+            <p class="text-xs text-slate-400">Enable built-in libraries, upload any Arduino <code class="text-slate-300">.zip</code> library archive, or paste a <code class="text-slate-300">.h</code> header to generate usable blocks</p>
           </div>
         </div>
         <button onclick="closeLibraryModal()" class="text-slate-400 hover:text-white p-1.5">
@@ -376,79 +406,104 @@
       </div>
 
       <!-- Modal Body -->
-      <div class="p-5 overflow-y-auto space-y-6 flex-1">
+      <div class="p-5 overflow-y-auto space-y-6 flex-1 code-scroll">
         
         <!-- SECTION 1: ONE-CLICK POPULAR ARDUINO LIBRARIES CATALOG -->
         <div>
           <div class="flex items-center justify-between mb-3">
-            <h4 class="text-xs font-bold uppercase tracking-wider text-teal-400 flex items-center gap-2">
-              <i class="fa-solid fa-boxes-stacked"></i> 1. Curated Hardware &amp; Protocol Libraries (Click to Toggle Include &amp; Init)
+            <h4 class="text-xs font-semibold uppercase tracking-wider text-slate-300 flex items-center gap-2">
+              <i class="fa-solid fa-boxes-stacked text-teal-400"></i> 1. Curated Hardware Libraries (Click to Toggle)
             </h4>
-            <span class="text-[11px] text-slate-400">Automatically injects <code class="text-slate-300">#include</code>, global object &amp; <code class="text-slate-300">setup()</code> init</span>
+            <span class="text-[11px] text-slate-500">Injects <code class="text-slate-300">#include</code>, global instance &amp; <code class="text-slate-300">setup()</code> init</span>
           </div>
           <div id="curatedLibrariesGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2.5">
             <!-- Populated dynamically via JS -->
           </div>
         </div>
 
-        <!-- SECTION 2: IMPORT ANY CUSTOM .H LIBRARY / HEADER PARSER -->
-        <div class="bg-slate-950 border border-slate-800 rounded-xl p-4 space-y-4">
-          <div class="flex items-center justify-between">
+        <!-- SECTION 2: UPLOAD .ZIP LIBRARY OR IMPORT .H HEADER -->
+        <div class="bg-[#0b0f14] border border-[#1e2734] rounded-xl p-4 space-y-4">
+          <div class="flex flex-wrap items-center justify-between gap-2">
             <div>
-              <h4 class="text-xs font-bold uppercase tracking-wider text-purple-400 flex items-center gap-2">
-                <i class="fa-solid fa-file-code"></i> 2. Import Any Custom Library / <code class="text-purple-300">.h</code> Header
+              <h4 class="text-xs font-semibold uppercase tracking-wider text-slate-200 flex items-center gap-2">
+                <i class="fa-solid fa-file-zipper text-teal-400"></i> 2. Upload <code class="text-teal-300">.zip</code> Library or Custom <code class="text-teal-300">.h</code> Header
               </h4>
-              <p class="text-[11px] text-slate-400 mt-0.5">Define a custom library header, object constructor, and methods—or paste a C++ class header snippet to register it in the workspace.</p>
+              <p class="text-[11px] text-slate-400 mt-0.5">Drop a standard Arduino library <code class="text-slate-300">.zip</code> (GitHub / Library Manager format) or <code class="text-slate-300">.h</code> file — methods are extracted into draggable blocks automatically.</p>
             </div>
-            <button onclick="fillSampleCustomLib()" class="px-2.5 py-1 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 text-[11px] border border-slate-700 transition">
+            <button onclick="fillSampleCustomLib()" class="px-2.5 py-1 rounded bg-[#161d27] hover:bg-[#1e2734] text-slate-300 text-[11px] border border-[#253040] transition">
               Load BME280 Example
             </button>
           </div>
 
+          <!-- ZIP / Header Drag-and-Drop Upload Box -->
+          <div id="zipDropZone"
+               onclick="document.getElementById('zipLibraryFileInput').click()"
+               ondragover="event.preventDefault(); this.classList.add('border-teal-500', 'bg-teal-950/20');"
+               ondragleave="this.classList.remove('border-teal-500', 'bg-teal-950/20');"
+               ondrop="handleZipDrop(event)"
+               class="cursor-pointer rounded-xl border border-dashed border-[#2b3748] hover:border-teal-500/70 bg-[#10151d] hover:bg-[#131a24] p-4 flex flex-col sm:flex-row items-center justify-between gap-3 transition">
+            <input id="zipLibraryFileInput" type="file" accept=".zip,.h,.hpp" class="hidden" onchange="handleLibraryFileInputChange(event)" />
+            <div class="flex items-center gap-3">
+              <div class="w-10 h-10 rounded-lg bg-[#161d27] border border-[#253040] flex items-center justify-center text-teal-400 shrink-0">
+                <i class="fa-solid fa-cloud-arrow-up text-lg"></i>
+              </div>
+              <div>
+                <div class="text-xs font-semibold text-slate-200">Click to upload or drop an Arduino <code class="text-teal-300">.zip</code> / <code class="text-teal-300">.h</code> library</div>
+                <div id="zipUploadStatusText" class="text-[11px] text-slate-400 mt-0.5">Reads <code class="text-slate-300">library.properties</code> &amp; <code class="text-slate-300">src/*.h</code> headers client-side — your files never leave your browser.</div>
+              </div>
+            </div>
+            <span class="px-3 py-1.5 rounded-lg bg-[#0f766e] hover:bg-[#0d9488] text-white text-xs font-medium shrink-0 transition">
+              Choose .zip / .h
+            </span>
+          </div>
+
+          <!-- Extra headers found inside uploaded ZIP -->
+          <div id="zipExtraHeadersBar" class="hidden flex-wrap items-center gap-1.5 text-[11px] bg-[#10151d] border border-[#1e2734] rounded-lg px-3 py-2"></div>
+
           <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
             <div>
-              <label class="text-[10px] uppercase font-semibold text-slate-400 block mb-1">Header File Name (.h)</label>
-              <input id="customLibHeader" type="text" placeholder="e.g. FastLED.h or PZEM004Tv30.h" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs font-mono text-white focus:outline-none focus:border-purple-500" />
+              <label class="text-[10px] uppercase font-semibold text-slate-400 block mb-1">Header File (.h)</label>
+              <input id="customLibHeader" type="text" placeholder="e.g. FastLED.h" class="w-full bg-[#10151d] border border-[#253040] rounded-lg px-2.5 py-1.5 text-xs font-mono text-white focus:outline-none focus:border-teal-500" />
             </div>
             <div>
-              <label class="text-[10px] uppercase font-semibold text-slate-400 block mb-1">Global Object / Declaration</label>
-              <input id="customLibObject" type="text" placeholder="e.g. CRGB leds[30];" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs font-mono text-white focus:outline-none focus:border-purple-500" />
+              <label class="text-[10px] uppercase font-semibold text-slate-400 block mb-1">Global Object</label>
+              <input id="customLibObject" type="text" placeholder="e.g. CRGB leds[30];" class="w-full bg-[#10151d] border border-[#253040] rounded-lg px-2.5 py-1.5 text-xs font-mono text-white focus:outline-none focus:border-teal-500" />
             </div>
             <div>
-              <label class="text-[10px] uppercase font-semibold text-slate-400 block mb-1">setup() Initialization Line</label>
-              <input id="customLibSetup" type="text" placeholder="e.g. FastLED.addLeds<NEOPIXEL, 6>(leds, 30);" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs font-mono text-white focus:outline-none focus:border-purple-500" />
+              <label class="text-[10px] uppercase font-semibold text-slate-400 block mb-1">setup() Init Line</label>
+              <input id="customLibSetup" type="text" placeholder="e.g. bme.begin(0x76);" class="w-full bg-[#10151d] border border-[#253040] rounded-lg px-2.5 py-1.5 text-xs font-mono text-white focus:outline-none focus:border-teal-500" />
             </div>
             <div>
               <label class="text-[10px] uppercase font-semibold text-slate-400 block mb-1">Methods (Comma-Separated)</label>
-              <input id="customLibMethod" type="text" placeholder="e.g. FastLED.show(), FastLED.clear()" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs font-mono text-white focus:outline-none focus:border-purple-500" />
+              <input id="customLibMethod" type="text" placeholder="e.g. FastLED.show()" class="w-full bg-[#10151d] border border-[#253040] rounded-lg px-2.5 py-1.5 text-xs font-mono text-white focus:outline-none focus:border-teal-500" />
             </div>
           </div>
 
           <div class="flex flex-wrap items-center justify-between gap-2 pt-1">
             <div class="text-[11px] text-slate-400">
-              <i class="fa-solid fa-circle-info text-purple-400 mr-1"></i>
-              Imported libraries automatically get their own <strong>Action &amp; Value blocks</strong> inside the <strong>"📚 Libraries &amp; Custom .h"</strong> category!
+              <i class="fa-solid fa-circle-info text-teal-400 mr-1"></i>
+              Imported libraries get <strong>Action &amp; Value blocks</strong> inside the <strong>"Libraries &amp; Custom .h"</strong> toolbox category.
             </div>
-            <button onclick="importCustomHeaderLibrary()" class="px-4 py-2 rounded-lg bg-purple-600 hover:bg-purple-500 text-white font-semibold text-xs transition shadow-lg shadow-purple-950/50">
-              + Import Library &amp; Generate Blocks
+            <button onclick="importCustomHeaderLibrary()" class="px-4 py-1.5 rounded-lg bg-[#0f766e] hover:bg-[#0d9488] text-white font-medium text-xs transition">
+              + Register Custom Library
             </button>
           </div>
 
           <!-- Raw .h C++ Header Code Auto-Parser -->
-          <div class="pt-3 border-t border-slate-800/80">
+          <div class="pt-3 border-t border-[#1e2734]">
             <div class="flex items-center justify-between mb-1.5">
-              <label class="text-[10px] uppercase font-bold tracking-wider text-teal-400 flex items-center gap-1.5">
-                <i class="fa-solid fa-wand-magic-sparkles"></i> Optional: Paste Raw C++ <code class="text-teal-300">.h</code> Header File to Auto-Extract Methods into Blocks
+              <label class="text-[10px] uppercase font-semibold tracking-wider text-slate-300 flex items-center gap-1.5">
+                Optional: Paste Raw C++ <code class="text-teal-300">.h</code> Header Text to Auto-Extract Methods
               </label>
               <button onclick="pasteSampleHeaderCode()" class="text-[11px] text-teal-400 hover:text-teal-300 underline">
                 Paste Sample .h Class
               </button>
             </div>
             <div class="flex gap-2">
-              <textarea id="rawHeaderPasteBox" rows="3" placeholder="Paste C++ class definition from any .h file (e.g. class Adafruit_BME280 { public: bool begin(); float readTemperature(); float readPressure(); }; )" class="flex-1 bg-slate-900 border border-slate-700 rounded-lg p-2 text-[11px] font-mono text-slate-200 focus:outline-none focus:border-teal-500"></textarea>
-              <button onclick="parseRawCppHeader()" class="px-3 py-2 rounded-lg bg-teal-600/20 hover:bg-teal-600/30 border border-teal-500/40 text-teal-300 text-xs font-semibold transition shrink-0 flex flex-col items-center justify-center gap-1">
-                <i class="fa-solid fa-microchip text-base"></i>
-                <span>Auto-Parse .h</span>
+              <textarea id="rawHeaderPasteBox" rows="3" placeholder="Paste C++ class definition from any .h file (e.g. class Adafruit_BME280 { public: bool begin(); float readTemperature(); }; )" class="flex-1 bg-[#10151d] border border-[#253040] rounded-lg p-2 text-[11px] font-mono text-slate-200 focus:outline-none focus:border-teal-500"></textarea>
+              <button onclick="parseRawCppHeader()" class="px-3 py-2 rounded-lg bg-[#161d27] hover:bg-[#1e2734] border border-[#253040] text-teal-300 text-xs font-medium transition shrink-0 flex flex-col items-center justify-center gap-1">
+                <i class="fa-solid fa-code text-sm"></i>
+                <span>Parse .h</span>
               </button>
             </div>
           </div>
@@ -457,8 +512,8 @@
         <!-- Registered Custom Libraries List -->
         <div>
           <div class="flex items-center justify-between mb-2">
-            <span class="text-xs font-semibold text-slate-400">Imported Custom Libraries &amp; Generated Block Bindings</span>
-            <span class="text-[11px] text-purple-300"><i class="fa-solid fa-arrow-pointer mr-1"></i>Click <strong>"+ Action Block"</strong> or open <strong>📚 Libraries &amp; Custom .h</strong> in the left sidebar</span>
+            <span class="text-xs font-semibold text-slate-300">Imported Libraries &amp; Block Bindings</span>
+            <span class="text-[11px] text-slate-400">Click <strong>"+ Action Block"</strong> or open <strong>Libraries &amp; Custom .h</strong> in the sidebar</span>
           </div>
           <div id="customLibsListContainer" class="space-y-1.5"></div>
         </div>
@@ -466,26 +521,26 @@
       </div>
 
       <!-- Modal Footer -->
-      <div class="px-5 py-3 bg-slate-950 border-t border-slate-800 flex items-center justify-between shrink-0">
-        <span class="text-[11px] text-slate-400">Tip: You can also drag raw <strong>#include</strong> and <strong>C++ Method Call</strong> blocks directly from the <em>Libraries &amp; Custom .h</em> category.</span>
-        <button onclick="closeLibraryModal()" class="px-4 py-1.5 rounded-lg bg-teal-600 hover:bg-teal-500 text-xs font-semibold text-white">
-          Apply &amp; Return to Blocks
+      <div class="px-5 py-3 bg-[#0b0f14] border-t border-[#1e2734] flex items-center justify-between shrink-0">
+        <span class="text-[11px] text-slate-400">Tip: Drag blocks for any uploaded library directly from the <em>Libraries &amp; Custom .h</em> category.</span>
+        <button onclick="closeLibraryModal()" class="px-4 py-1.5 rounded-lg bg-[#0f766e] hover:bg-[#0d9488] text-xs font-medium text-white">
+          Done
         </button>
       </div>
     </div>
   </div>
 
   <!-- MIT APP INVENTOR STYLE "HARDWARE COMPONENT DESIGNER" MODAL -->
-  <div id="componentModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 hidden items-center justify-center p-4">
-    <div class="bg-slate-900 border border-slate-700 rounded-2xl max-w-lg w-full shadow-2xl overflow-hidden">
-      <div class="px-5 py-4 border-b border-slate-800 flex items-center justify-between">
+  <div id="componentModal" class="fixed inset-0 bg-black/75 backdrop-blur-sm z-[120] hidden items-center justify-center p-4">
+    <div class="bg-[#10151d] border border-[#253040] rounded-2xl max-w-lg w-full shadow-2xl overflow-hidden">
+      <div class="px-5 py-4 border-b border-[#1e2734] flex items-center justify-between">
         <div class="flex items-center gap-2.5">
-          <div class="w-8 h-8 rounded-lg bg-amber-500/20 border border-amber-500/40 flex items-center justify-center text-amber-300">
+          <div class="w-8 h-8 rounded-lg bg-[#161d27] border border-[#253040] flex items-center justify-center text-teal-400">
             <i class="fa-solid fa-layer-group"></i>
           </div>
           <div>
-            <h3 class="font-bold text-sm text-white">Hardware Component Designer</h3>
-            <p class="text-[11px] text-slate-400">Define named components (like MIT App Inventor) to use in your Named Component blocks</p>
+            <h3 class="font-semibold text-sm text-slate-100">Hardware Component Designer</h3>
+            <p class="text-[11px] text-slate-400">Define named components to use in your Named Component blocks</p>
           </div>
         </div>
         <button onclick="closeSimulatorModal()" class="text-slate-400 hover:text-white p-1">
@@ -495,16 +550,16 @@
 
       <div class="p-5 space-y-4">
         <!-- Add New Component Form -->
-        <div class="bg-slate-950 border border-slate-800 rounded-xl p-3.5 space-y-3">
+        <div class="bg-[#0b0f14] border border-[#1e2734] rounded-xl p-3.5 space-y-3">
           <div class="text-xs font-semibold text-slate-300">Add New Named Hardware Component</div>
           <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
             <div>
               <label class="text-[10px] uppercase text-slate-400 block mb-1">Component Name</label>
-              <input id="newCompName" type="text" placeholder="e.g. Alarm_Buzzer" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-white focus:outline-none focus:border-teal-500" />
+              <input id="newCompName" type="text" placeholder="e.g. Alarm_Buzzer" class="w-full bg-[#10151d] border border-[#253040] rounded-lg px-2.5 py-1.5 text-xs text-white focus:outline-none focus:border-teal-500" />
             </div>
             <div>
               <label class="text-[10px] uppercase text-slate-400 block mb-1">Hardware Type</label>
-              <select id="newCompType" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-white focus:outline-none">
+              <select id="newCompType" class="w-full bg-[#10151d] border border-[#253040] rounded-lg px-2.5 py-1.5 text-xs text-white focus:outline-none">
                 <option value="LED">LED Indicator (Output)</option>
                 <option value="RELAY">Relay Module (Output)</option>
                 <option value="BUZZER">Active Buzzer (Output)</option>
@@ -513,7 +568,7 @@
             </div>
             <div>
               <label class="text-[10px] uppercase text-slate-400 block mb-1">Arduino Pin</label>
-              <select id="newCompPin" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-white focus:outline-none">
+              <select id="newCompPin" class="w-full bg-[#10151d] border border-[#253040] rounded-lg px-2.5 py-1.5 text-xs text-white focus:outline-none">
                 <option value="2">Pin D2</option>
                 <option value="3">Pin D3 (PWM)</option>
                 <option value="4">Pin D4</option>
@@ -526,7 +581,7 @@
               </select>
             </div>
           </div>
-          <button onclick="addNamedComponent()" class="w-full py-2 rounded-lg bg-teal-600 hover:bg-teal-500 text-white font-semibold text-xs transition">
+          <button onclick="addNamedComponent()" class="w-full py-2 rounded-lg bg-[#0f766e] hover:bg-[#0d9488] text-white font-medium text-xs transition">
             + Register Named Component in Toolbox
           </button>
         </div>
@@ -538,8 +593,8 @@
         </div>
       </div>
 
-      <div class="px-5 py-3 bg-slate-950 border-t border-slate-800 flex justify-end">
-        <button onclick="closeSimulatorModal()" class="px-4 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs font-semibold text-slate-200">
+      <div class="px-5 py-3 bg-[#0b0f14] border-t border-[#1e2734] flex justify-end">
+        <button onclick="closeSimulatorModal()" class="px-4 py-1.5 rounded-lg bg-[#161d27] hover:bg-[#1e2734] border border-[#253040] text-xs font-medium text-slate-200">
           Done
         </button>
       </div>
@@ -547,7 +602,7 @@
   </div>
 
   <!-- TOAST NOTIFICATION -->
-  <div id="toastBanner" class="fixed bottom-5 right-5 z-50 pointer-events-none opacity-0 translate-y-2 transition-all duration-200 bg-slate-900 border border-teal-500/50 text-slate-100 px-4 py-2.5 rounded-xl shadow-2xl flex items-center gap-2.5 text-xs font-medium">
+  <div id="toastBanner" class="fixed bottom-5 right-5 z-[130] pointer-events-none opacity-0 translate-y-2 transition-all duration-200 bg-[#10151d] border border-teal-600/50 text-slate-100 px-4 py-2.5 rounded-xl shadow-2xl flex items-center gap-2.5 text-xs font-medium">
     <i class="fa-solid fa-circle-check text-teal-400 text-sm"></i>
     <span id="toastMessage">Copied to clipboard!</span>
   </div>
@@ -556,7 +611,7 @@
        BLOCKLY TOOLBOX XML DEFINITION
        ========================================================================== -->
   <xml id="toolbox" style="display: none">
-    <category name="⚡ Structure" colour="#00979D">
+    <category name="⚡ Structure" colour="#1E6F73">
       <block type="arduino_setup_loop"></block>
       <block type="arduino_comment">
         <field name="TEXT">Check sensor and trigger actuator</field>
@@ -572,7 +627,7 @@
       </block>
     </category>
 
-    <category name="⚡ Interrupts (ISR)" colour="#E11D48">
+    <category name="⚡ Interrupts (ISR)" colour="#8F4852">
       <block type="arduino_attach_interrupt">
         <field name="MODE">FALLING</field>
         <field name="ISR_NAME">onPulseDetected</field>
@@ -590,7 +645,7 @@
       </block>
     </category>
 
-    <category name="🛠️ Custom Functions" colour="#D946EF">
+    <category name="🛠️ Custom Functions" colour="#6A5B8C">
       <block type="arduino_func_def_void">
         <field name="NAME">myCustomTask</field>
         <field name="PARAMS">int speed, bool dir</field>
@@ -618,9 +673,9 @@
       </block>
     </category>
 
-    <category name="📚 Libraries &amp; Custom .h" colour="#9333EA" custom="CUSTOM_LIBRARIES_FLYOUT"></category>
+    <category name="📚 Libraries &amp; Custom .h" colour="#56618F" custom="CUSTOM_LIBRARIES_FLYOUT"></category>
 
-    <category name="🧩 Named Components" colour="#D97706">
+    <category name="🧩 Named Components" colour="#876A45">
       <block type="component_set_state">
         <field name="STATE">HIGH</field>
       </block>
@@ -628,7 +683,7 @@
       <block type="component_read_button"></block>
     </category>
 
-    <category name="🔌 Digital &amp; Analog I/O" colour="#0284C7">
+    <category name="🔌 Digital &amp; Analog I/O" colour="#2C698A">
       <block type="arduino_digital_write">
         <field name="STATE">HIGH</field>
       </block>
@@ -667,7 +722,7 @@
       </block>
     </category>
 
-    <category name="📡 Sensors &amp; Actuators" colour="#7C3AED">
+    <category name="📡 Sensors &amp; Actuators" colour="#546182">
       <block type="sensor_ultrasonic_cm">
         <field name="TRIG">10</field>
         <field name="ECHO">11</field>
@@ -707,7 +762,7 @@
       </block>
     </category>
 
-    <category name="🌐 WiFi, BLE &amp; IoT" colour="#0D9488">
+    <category name="🌐 WiFi, BLE &amp; IoT" colour="#2B7273">
       <block type="iot_wifi_connect">
         <field name="SSID">MyLabWiFi</field>
         <field name="PASS">secret123</field>
@@ -726,7 +781,7 @@
       </block>
     </category>
 
-    <category name="⏱️ Time &amp; Delays" colour="#E1116A">
+    <category name="⏱️ Time &amp; Delays" colour="#7C576F">
       <block type="arduino_delay_ms">
         <value name="MS">
           <shadow type="math_number">
@@ -751,7 +806,7 @@
       </block>
     </category>
 
-    <category name="🖥️ Serial, I2C, SPI &amp; EEPROM" colour="#059669">
+    <category name="🖥️ Serial, I2C, SPI &amp; EEPROM" colour="#37705E">
       <block type="arduino_serial_print">
         <field name="NEWLINE">println</field>
         <value name="CONTENT">
@@ -780,7 +835,7 @@
 
     <sep></sep>
 
-    <category name="🔀 Logic &amp; Bitwise" colour="#4F46E5">
+    <category name="🔀 Logic &amp; Bitwise" colour="#485A87">
       <block type="controls_if"></block>
       <block type="logic_compare"></block>
       <block type="logic_operation"></block>
@@ -802,7 +857,7 @@
       </block>
     </category>
 
-    <category name="🔁 Loops &amp; Control" colour="#10B981">
+    <category name="🔁 Loops &amp; Control" colour="#3A755B">
       <block type="controls_repeat_ext">
         <value name="TIMES">
           <shadow type="math_number">
@@ -822,7 +877,7 @@
       </block>
     </category>
 
-    <category name="🧮 Math, Random &amp; Cast" colour="#2563EB">
+    <category name="🧮 Math, Random &amp; Cast" colour="#3A648F">
       <block type="math_number">
         <field name="NUM">15</field>
       </block>
@@ -851,7 +906,7 @@
       </block>
     </category>
 
-    <category name="📦 Variables, Arrays &amp; Structs" colour="#DB2777">
+    <category name="📦 Variables, Arrays &amp; Structs" colour="#7E5268">
       <block type="arduino_var_declare">
         <field name="TYPE">int</field>
         <field name="VAR">distanceCm</field>
@@ -1274,6 +1329,8 @@
       return options;
     }
 
+    let lastZipExtraHeaders = [];
+
     function renderLibraryManagerUI() {
       const grid = document.getElementById('curatedLibrariesGrid');
       const customList = document.getElementById('customLibsListContainer');
@@ -1285,20 +1342,20 @@
         card.onclick = () => toggleCuratedLibrary(idx);
         card.className = `cursor-pointer rounded-xl p-3 border transition flex flex-col justify-between ${
           lib.enabled
-            ? 'bg-purple-950/50 border-purple-500/70 shadow-md shadow-purple-950/40'
-            : 'bg-slate-950/90 border-slate-800 hover:border-slate-700'
+            ? 'bg-teal-950/35 border-teal-500/60'
+            : 'bg-[#0b0f14] border-[#1e2734] hover:border-[#2e3b4e]'
         }`;
         card.innerHTML = `
           <div>
-            <div class="flex items-center justify-between mb-1">
-              <span class="font-semibold text-xs text-white">${lib.name}</span>
-              <span class="text-[10px] px-2 py-0.5 rounded-full font-semibold ${
-                lib.enabled ? 'bg-purple-500 text-white' : 'bg-slate-800 text-slate-400'
-              }">${lib.enabled ? '✓ Active in Toolbox' : '+ Enable'}</span>
+            <div class="flex items-center justify-between mb-1 gap-2">
+              <span class="font-semibold text-xs text-slate-100">${lib.name}</span>
+              <span class="text-[10px] px-2 py-0.5 rounded-full font-medium shrink-0 ${
+                lib.enabled ? 'bg-[#0f766e] text-white' : 'bg-[#161d27] text-slate-400 border border-[#253040]'
+              }">${lib.enabled ? 'Active' : '+ Enable'}</span>
             </div>
             <p class="text-[11px] text-slate-400 mb-2">${lib.desc}</p>
           </div>
-          <div class="font-mono text-[10px] text-purple-300 bg-slate-900/90 px-2 py-1 rounded border border-slate-800 truncate">
+          <div class="font-mono text-[10px] text-slate-300 bg-[#10151d] px-2 py-1 rounded border border-[#1e2734] truncate">
             ${lib.header.split('\n').pop().replace(/</g, '&lt;').replace(/>/g, '&gt;')}
           </div>
         `;
@@ -1309,22 +1366,22 @@
       customImportedLibraries.forEach((cLib, idx) => {
         const methodsCount = (cLib.methods && cLib.methods.length) ? cLib.methods.length : 1;
         const row = document.createElement('div');
-        row.className = 'flex flex-wrap items-center justify-between gap-2 bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-xs';
+        row.className = 'flex flex-wrap items-center justify-between gap-2 bg-[#0b0f14] border border-[#1e2734] rounded-lg px-3 py-2 text-xs';
         row.innerHTML = `
           <div class="flex flex-wrap items-center gap-2 font-mono text-[11px]">
-            <span class="text-purple-300 font-semibold">#include &lt;${cLib.header}&gt;</span>
+            <span class="text-teal-300 font-semibold">#include &lt;${cLib.header}&gt;</span>
             <span class="text-slate-600">|</span>
-            <span class="text-sky-300">${cLib.objectDecl || 'Static Class'}</span>
+            <span class="text-slate-300">${cLib.objectDecl || 'Free Functions / Static'}</span>
             <span class="text-slate-600">|</span>
-            <span class="px-1.5 py-0.5 rounded bg-purple-500/15 text-purple-300 border border-purple-500/30 text-[10px]">
-              ${methodsCount} block method${methodsCount > 1 ? 's' : ''} ready
+            <span class="px-1.5 py-0.5 rounded bg-[#161d27] text-slate-300 border border-[#253040] text-[10px]">
+              ${methodsCount} block${methodsCount > 1 ? 's' : ''}${cLib.sourceZip ? ` · ${cLib.sourceZip}` : ''}
             </span>
           </div>
           <div class="flex items-center gap-1.5">
-            <button onclick="insertImportedLibBlockToWorkspace(${idx}, 'stmt')" class="px-2 py-1 rounded bg-purple-600/25 hover:bg-purple-600/40 text-purple-200 border border-purple-500/40 text-[11px] font-medium transition">
+            <button onclick="insertImportedLibBlockToWorkspace(${idx}, 'stmt')" class="px-2 py-1 rounded bg-[#161d27] hover:bg-[#1e2734] text-slate-200 border border-[#253040] text-[11px] font-medium transition">
               + Action Block
             </button>
-            <button onclick="insertImportedLibBlockToWorkspace(${idx}, 'val')" class="px-2 py-1 rounded bg-teal-600/25 hover:bg-teal-600/40 text-teal-200 border border-teal-500/40 text-[11px] font-medium transition">
+            <button onclick="insertImportedLibBlockToWorkspace(${idx}, 'val')" class="px-2 py-1 rounded bg-[#0f766e]/25 hover:bg-[#0f766e]/40 text-teal-200 border border-teal-700/40 text-[11px] font-medium transition">
               + Value Block
             </button>
             ${customImportedLibraries.length > 1 ? `
@@ -1347,7 +1404,7 @@
       renderLibraryManagerUI();
       updateArduinoCode();
       const lib = CURATED_LIBRARIES[index];
-      showToast(`${lib.name} ${lib.enabled ? 'enabled! Open "📚 Libraries & Custom .h" in the toolbox to grab its blocks.' : 'removed from sketch'}`);
+      showToast(`${lib.name} ${lib.enabled ? 'enabled! Open "Libraries & Custom .h" in the toolbox to grab its blocks.' : 'removed from sketch'}`);
     }
 
     function fillSampleCustomLib() {
@@ -1370,53 +1427,259 @@ public:
 };`;
     }
 
+    function stripCppComments(src) {
+      return String(src || '')
+        .replace(/\/\*[\s\S]*?\*\//g, ' ')
+        .replace(/\/\/.*$/gm, '');
+    }
+
+    function buildSampleArgs(paramsRaw) {
+      if (!paramsRaw || paramsRaw === 'void') return '';
+      return paramsRaw.split(',').map((p, i) => {
+        const cleanParam = p.replace(/\s+/g, ' ').trim();
+        if (!cleanParam) return '';
+        if (cleanParam.includes('=')) return cleanParam.split('=').pop().trim();
+        if (/bool/i.test(cleanParam)) return 'true';
+        if (/float|double/i.test(cleanParam)) return '10.0';
+        if (/char\s*\*|String/i.test(cleanParam)) return '"text"';
+        if (/TwoWire|Stream|Print/i.test(cleanParam)) return 'Wire';
+        return String(i);
+      }).filter(Boolean).join(', ');
+    }
+
+    function parseCppHeaderSource(rawText, headerFileHint = '', fallbackLibName = '') {
+      const cleaned = stripCppComments(rawText);
+      const headerName = headerFileHint
+        ? headerFileHint.replace(/^.*[\\/]/, '')
+        : `${fallbackLibName || 'CustomDevice'}.h`;
+
+      // Prefer a real class definition over forward declarations (e.g. "class Wire;")
+      const classMatch = cleaned.match(/\b(?:class|struct)\s+([A-Za-z_][A-Za-z0-9_]*)(?:\s*:\s*[^{]+)?\s*\{/);
+      const className = classMatch ? classMatch[1] : '';
+
+      const returnTypePattern = '(?:static\\s+|virtual\\s+|inline\\s+)?(?:const\\s+)?(?:void|bool|boolean|int|long|unsigned\\s+long|float|double|uint8_t|uint16_t|uint32_t|int8_t|int16_t|int32_t|size_t|byte|String|char\\s*\\*|const\\s+char\\s*\\*)';
+      const fnRegex = new RegExp(`${returnTypePattern}\\s+([A-Za-z_][A-Za-z0-9_]*)\\s*\\(([^;{}()]*)\\)`, 'g');
+
+      let searchScope = cleaned;
+      if (classMatch) {
+        const classBodyStart = cleaned.indexOf(classMatch[0]);
+        const sliceAfterClass = cleaned.slice(classBodyStart);
+        const publicIdx = sliceAfterClass.search(/\bpublic\s*:/);
+        if (publicIdx !== -1) {
+          const afterPublic = sliceAfterClass.slice(publicIdx + 7);
+          const privIdx = afterPublic.search(/\b(?:private|protected)\s*:/);
+          searchScope = privIdx !== -1 ? afterPublic.slice(0, privIdx) : afterPublic;
+        }
+      }
+
+      const instanceBase = (className || headerName.replace(/\.(h|hpp)$/i, '') || 'device')
+        .replace(/^Adafruit_|^SparkFun_|^DFRobot_/i, '')
+        .replace(/[^A-Za-z0-9_]/g, '')
+        .toLowerCase() || 'device';
+      const instanceName = /^[0-9]/.test(instanceBase) ? `dev_${instanceBase}` : `${instanceBase}1`;
+
+      const extractedMethods = [];
+      const seenNames = new Set();
+      let hasBegin = false;
+      let beginCall = `${instanceName}.begin();`;
+      let match;
+
+      while ((match = fnRegex.exec(searchScope)) !== null) {
+        const fnName = match[1];
+        const paramsRaw = match[2].trim();
+        if (!fnName || fnName === className || fnName.startsWith('~') || fnName.startsWith('_')) continue;
+        if (fnName === 'begin' || fnName === 'init' || fnName === 'initialize') {
+          hasBegin = true;
+          const args = buildSampleArgs(paramsRaw);
+          beginCall = `${instanceName}.${fnName}(${args});`;
+          continue;
+        }
+        if (seenNames.has(fnName)) continue;
+        seenNames.add(fnName);
+        const sampleArgs = buildSampleArgs(paramsRaw);
+        const expr = className ? `${instanceName}.${fnName}(${sampleArgs})` : `${fnName}(${sampleArgs})`;
+        extractedMethods.push(expr);
+        if (extractedMethods.length >= 25) break;
+      }
+
+      if (extractedMethods.length === 0) {
+        extractedMethods.push(className ? `${instanceName}.read()` : `${instanceBase}_read()`);
+      }
+
+      return {
+        header: headerName,
+        objectDecl: className ? `${className} ${instanceName};` : '',
+        setupCall: hasBegin ? beginCall : (className ? `// ${instanceName} ready` : ''),
+        methods: extractedMethods,
+        className: className || headerName.replace(/\.(h|hpp)$/i, '')
+      };
+    }
+
+    function registerImportedLibraryEntry(entry) {
+      const existingIdx = customImportedLibraries.findIndex(c => c.header.toLowerCase() === entry.header.toLowerCase());
+      if (existingIdx >= 0) {
+        customImportedLibraries[existingIdx] = entry;
+      } else {
+        customImportedLibraries.push(entry);
+      }
+      renderLibraryManagerUI();
+      updateArduinoCode();
+      saveStateToLocalStorage();
+    }
+
+    function populateLibraryFormAndRegister(parsed, sourceZipName = '', pioDepName = '', autoRegister = true) {
+      document.getElementById('customLibHeader').value = parsed.header;
+      document.getElementById('customLibObject').value = parsed.objectDecl;
+      document.getElementById('customLibSetup').value = parsed.setupCall;
+      document.getElementById('customLibMethod').value = parsed.methods.join(', ');
+
+      if (autoRegister) {
+        registerImportedLibraryEntry({
+          header: parsed.header,
+          objectDecl: parsed.objectDecl,
+          setupCall: parsed.setupCall,
+          defaultMethod: parsed.methods[0],
+          methods: parsed.methods,
+          sourceZip: sourceZipName,
+          pioDep: pioDepName
+        });
+      }
+    }
+
     function parseRawCppHeader() {
       const raw = document.getElementById('rawHeaderPasteBox').value.trim();
       if (!raw) {
         showToast('Paste a C++ class or .h header snippet first!');
         return;
       }
+      const parsed = parseCppHeaderSource(raw);
+      populateLibraryFormAndRegister(parsed, '', '', false);
+      showToast(`Parsed "${parsed.className}" (${parsed.methods.length} methods found)! Click "+ Register Custom Library".`);
+    }
 
-      const classMatch = raw.match(/class\s+([A-Za-z_][A-Za-z0-9_]*)/);
-      const className = classMatch ? classMatch[1] : 'CustomDevice';
-      const instanceName = className.replace(/^Adafruit_|^SparkFun_|^DFRobot_/i, '').toLowerCase() + '1';
+    function handleZipDrop(event) {
+      event.preventDefault();
+      event.currentTarget.classList.remove('border-teal-500', 'bg-teal-950/20');
+      const file = event.dataTransfer?.files?.[0];
+      if (file) processUploadedLibraryFile(file);
+    }
 
-      const methodRegex = /(?:void|bool|int|long|float|double|uint8_t|uint16_t|uint32_t|int16_t|String|char\s*\*)\s+([A-Za-z_][A-Za-z0-9_]*)\s*\(([^)]*)\)/g;
-      const extractedMethods = [];
-      let match;
-      let hasBegin = false;
+    function handleLibraryFileInputChange(event) {
+      const file = event.target.files?.[0];
+      if (file) processUploadedLibraryFile(file);
+      event.target.value = '';
+    }
 
-      while ((match = methodRegex.exec(raw)) !== null) {
-        const fnName = match[1];
-        const paramsRaw = match[2].trim();
-        if (fnName === className) continue;
-        if (fnName === 'begin' || fnName === 'init' || fnName === 'initialize') {
-          hasBegin = true;
-          continue;
-        }
-        let sampleArgs = '';
-        if (paramsRaw && paramsRaw !== 'void') {
-          const parts = paramsRaw.split(',');
-          sampleArgs = parts.map((p, i) => {
-            if (p.includes('=')) return p.split('=')[1].trim();
-            if (/float|double/.test(p)) return '10.0';
-            if (/char|String/.test(p)) return '"text"';
-            return String(i);
-          }).join(', ');
-        }
-        extractedMethods.push(`${instanceName}.${fnName}(${sampleArgs})`);
+    function renderZipExtraHeadersBar(entries, primaryPath, zipName, libPropName) {
+      const bar = document.getElementById('zipExtraHeadersBar');
+      if (!bar) return;
+      if (!entries || entries.length <= 1) {
+        bar.classList.add('hidden');
+        bar.classList.remove('flex');
+        bar.innerHTML = '';
+        return;
       }
+      bar.innerHTML = `<span class="text-slate-400 mr-1">Headers in ${zipName}:</span>`;
+      entries.slice(0, 8).forEach((item, idx) => {
+        const chip = document.createElement('button');
+        const isPrimary = item.path === primaryPath;
+        chip.type = 'button';
+        chip.className = `px-2 py-0.5 rounded font-mono text-[10px] border transition ${
+          isPrimary
+            ? 'bg-[#0f766e]/30 border-teal-500/60 text-teal-200'
+            : 'bg-[#161d27] hover:bg-[#1e2734] border-[#253040] text-slate-300'
+        }`;
+        chip.textContent = item.baseName;
+        chip.onclick = async () => {
+          const text = await item.zipObj.async('string');
+          const parsed = parseCppHeaderSource(text, item.baseName, libPropName);
+          populateLibraryFormAndRegister(parsed, zipName, libPropName, true);
+          showToast(`Imported <${parsed.header}> (${parsed.methods.length} blocks ready)!`);
+        };
+        bar.appendChild(chip);
+      });
+      bar.classList.remove('hidden');
+      bar.classList.add('flex');
+    }
 
-      if (extractedMethods.length === 0) {
-        extractedMethods.push(`${instanceName}.read()`);
+    async function processUploadedLibraryFile(file) {
+      const statusEl = document.getElementById('zipUploadStatusText');
+      const lowerName = file.name.toLowerCase();
+
+      try {
+        if (lowerName.endsWith('.h') || lowerName.endsWith('.hpp')) {
+          const text = await file.text();
+          document.getElementById('rawHeaderPasteBox').value = text.slice(0, 6000);
+          const parsed = parseCppHeaderSource(text, file.name);
+          populateLibraryFormAndRegister(parsed, '', '', true);
+          renderZipExtraHeadersBar([], '', '', '');
+          if (statusEl) statusEl.textContent = `Imported ${file.name} (${parsed.methods.length} methods extracted).`;
+          showToast(`Imported <${parsed.header}>! Ready inside "Libraries & Custom .h".`);
+          return;
+        }
+
+        if (!lowerName.endsWith('.zip')) {
+          showToast('Upload a .zip Arduino library archive or a .h header file.');
+          return;
+        }
+
+        if (typeof JSZip === 'undefined') {
+          showToast('ZIP extractor is still loading or blocked offline — paste the .h text below instead.');
+          return;
+        }
+
+        const buffer = await file.arrayBuffer();
+        const zip = await JSZip.loadAsync(buffer);
+
+        // Read optional library.properties metadata
+        let libPropName = file.name.replace(/\.zip$/i, '').replace(/-(?:master|main|v?\d[\d.]*)$/i, '');
+        let libPropIncludes = [];
+        const propEntry = Object.values(zip.files).find(f => !f.dir && /(?:^|\/)library\.properties$/i.test(f.name) && !f.name.includes('__MACOSX'));
+        if (propEntry) {
+          const propText = await propEntry.async('string');
+          const nameLine = propText.match(/^name\s*=\s*(.+)$/m);
+          const incLine = propText.match(/^includes\s*=\s*(.+)$/m);
+          if (nameLine) libPropName = nameLine[1].trim();
+          if (incLine) libPropIncludes = incLine[1].split(',').map(s => s.trim().toLowerCase()).filter(Boolean);
+        }
+
+        // Gather all candidate .h/.hpp headers excluding examples/tests/extras
+        const headerCandidates = Object.values(zip.files)
+          .filter(f => !f.dir && /\.(h|hpp)$/i.test(f.name) && !/(?:^|\/)(?:examples?|tests?|extras|__MACOSX|\.git)\//i.test(f.name))
+          .map(f => {
+            const baseName = f.name.replace(/^.*\//, '');
+            const baseLower = baseName.toLowerCase();
+            const zipBaseLower = libPropName.toLowerCase().replace(/[^a-z0-9]/g, '');
+            const headerStem = baseLower.replace(/\.(h|hpp)$/, '').replace(/[^a-z0-9]/g, '');
+            let score = 100 - f.name.split('/').length * 5;
+            if (libPropIncludes.includes(baseLower)) score += 200;
+            if (headerStem === zipBaseLower) score += 120;
+            if (/\/src\/[^/]+\.(h|hpp)$/i.test(f.name) || f.name.split('/').length <= 2) score += 40;
+            if (/\/(?:utility|internal|priv|detail|arch)\//i.test(f.name)) score -= 80;
+            return { path: f.name, baseName, zipObj: f, score };
+          })
+          .sort((a, b) => b.score - a.score);
+
+        if (headerCandidates.length === 0) {
+          showToast(`No .h header files found inside "${file.name}".`);
+          return;
+        }
+
+        const primary = headerCandidates[0];
+        const headerText = await primary.zipObj.async('string');
+        document.getElementById('rawHeaderPasteBox').value = headerText.slice(0, 6000);
+        const parsed = parseCppHeaderSource(headerText, primary.baseName, libPropName);
+        populateLibraryFormAndRegister(parsed, file.name, libPropName, true);
+        renderZipExtraHeadersBar(headerCandidates, primary.path, file.name, libPropName);
+
+        if (statusEl) {
+          statusEl.textContent = `Loaded "${file.name}" -> <${parsed.header}> (${parsed.methods.length} methods ready).`;
+        }
+        showToast(`Uploaded ${file.name} -> <${parsed.header}> (${parsed.methods.length} blocks ready)!`);
+      } catch (err) {
+        console.error('ZIP library import error:', err);
+        showToast(`Could not import "${file.name}": ${err.message}`);
       }
-
-      document.getElementById('customLibHeader').value = `${className}.h`;
-      document.getElementById('customLibObject').value = `${className} ${instanceName};`;
-      document.getElementById('customLibSetup').value = hasBegin ? `${instanceName}.begin();` : `// ${instanceName} ready`;
-      document.getElementById('customLibMethod').value = extractedMethods.join(', ');
-
-      showToast(`Parsed class "${className}" (${extractedMethods.length} methods found)! Click "+ Import Library" to register.`);
     }
 
     function importCustomHeaderLibrary() {
@@ -1435,7 +1698,7 @@ public:
         ? methodInput.split(',').map(s => s.trim()).filter(Boolean)
         : [`// Call ${cleanHeader} method`];
 
-      customImportedLibraries.push({
+      registerImportedLibraryEntry({
         header: cleanHeader,
         objectDecl: objDecl,
         setupCall: setupLine,
@@ -1448,9 +1711,7 @@ public:
       document.getElementById('customLibSetup').value = '';
       document.getElementById('customLibMethod').value = '';
 
-      renderLibraryManagerUI();
-      updateArduinoCode();
-      showToast(`Imported <${cleanHeader}>! Open "📚 Libraries & Custom .h" in the left sidebar to drag its blocks.`);
+      showToast(`Imported <${cleanHeader}>! Open "Libraries & Custom .h" in the left sidebar to drag its blocks.`);
     }
 
     function insertImportedLibBlockToWorkspace(libIdx, mode) {
@@ -1466,11 +1727,44 @@ public:
       }
       newBlock.initSvg();
       newBlock.render();
-      newBlock.moveBy(120 + Math.random() * 60, 140 + Math.random() * 60);
+
+      let placedInLoop = false;
+      if (mode === 'stmt' && newBlock.previousConnection) {
+        const rootBlock = workspace.getTopBlocks(false).find(b => b.type === 'arduino_setup_loop');
+        const loopInput = rootBlock && rootBlock.getInput('LOOP');
+        if (loopInput && loopInput.connection) {
+          let tailConn = loopInput.connection;
+          while (tailConn.targetBlock()) {
+            const target = tailConn.targetBlock();
+            if (!target.nextConnection) break;
+            tailConn = target.nextConnection;
+          }
+          if (!tailConn.targetBlock()) {
+            tailConn.connect(newBlock.previousConnection);
+            placedInLoop = true;
+          }
+        }
+      }
+
+      if (!placedInLoop) {
+        const topBlocks = workspace.getTopBlocks(false).filter(b => b.id !== newBlock.id);
+        let targetX = 480;
+        let targetY = 48;
+        if (topBlocks.length > 0) {
+          const maxRight = Math.max(...topBlocks.map(b => {
+            const rect = b.getBoundingRectangle();
+            return rect ? rect.right : 420;
+          }));
+          targetX = maxRight + 40;
+        }
+        newBlock.moveBy(targetX, targetY);
+      }
 
       closeLibraryModal();
-      updateArduinoCode();
-      showToast(`Dropped <${lib.header}> ${mode === 'val' ? 'Value' : 'Action'} block onto workspace!`);
+      newBlock.select();
+      updateArduinoCode(true);
+      saveStateToLocalStorage();
+      showToast(`Added <${lib.header}> ${mode === 'val' ? 'Value' : 'Action'} block${placedInLoop ? ' to loop()' : ''}!`);
     }
 
     function removeCustomLibrary(idx) {
@@ -1537,22 +1831,22 @@ public:
       namedComponents.forEach((comp, idx) => {
         // Top strip badge
         const badge = document.createElement('div');
-        badge.className = 'px-2 py-0.5 rounded-md bg-slate-800 border border-slate-700 text-slate-200 flex items-center gap-1.5 text-[11px] shrink-0';
-        const icon = comp.mode === 'OUTPUT' ? 'fa-lightbulb text-amber-400' : 'fa-toggle-on text-sky-400';
+        badge.className = 'px-2 py-0.5 rounded bg-[#161d27] border border-[#253040] text-slate-300 flex items-center gap-1.5 text-[11px] shrink-0';
+        const icon = comp.mode === 'OUTPUT' ? 'fa-lightbulb text-teal-400/80' : 'fa-toggle-on text-slate-400';
         badge.innerHTML = `
           <i class="fa-solid ${icon}"></i>
-          <span class="font-mono font-semibold">${comp.name}</span>
-          <span class="text-slate-400">${formatPinLabel(comp.pin)}</span>
+          <span class="font-mono font-medium">${comp.name}</span>
+          <span class="text-slate-500">${formatPinLabel(comp.pin)}</span>
         `;
         container.appendChild(badge);
 
         // Modal row
         const row = document.createElement('div');
-        row.className = 'flex items-center justify-between bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-xs';
+        row.className = 'flex items-center justify-between bg-[#0b0f14] border border-[#1e2734] rounded-lg px-3 py-2 text-xs';
         row.innerHTML = `
           <div class="flex items-center gap-2">
             <span class="font-mono font-semibold text-teal-300">${comp.name}</span>
-            <span class="text-[10px] px-1.5 py-0.5 rounded bg-slate-800 text-slate-300">${comp.type}</span>
+            <span class="text-[10px] px-1.5 py-0.5 rounded bg-[#161d27] border border-[#253040] text-slate-300">${comp.type}</span>
             <span class="text-[11px] text-slate-400">Pin ${formatPinLabel(comp.pin)} (${comp.mode})</span>
           </div>
           ${namedComponents.length > 1 ? `
@@ -1620,13 +1914,37 @@ public:
 
     ArduinoGenerator.INDENT = '  ';
 
+    const TRACE_START = '\uE001';
+    const TRACE_END = '\uE002';
+    let selectedBlockId = null;
+    let currentTracedLines = [];
+    let traceJumpCursor = 0;
+
+    function createTrackedGeneratorMap(generator, keySet) {
+      return new Proxy(Object.create(null), {
+        set(target, prop, value) {
+          if (generator.traceDepth_ > 0 && typeof prop === 'string') {
+            keySet.add(prop);
+          }
+          target[prop] = value;
+          return true;
+        }
+      });
+    }
+
     /**
      * Initialize dictionaries before every workspace code generation run
      */
     ArduinoGenerator.init = function(workspace) {
-      this.includes_ = Object.create(null);
-      this.definitions_ = Object.create(null);
-      this.setupCode_ = Object.create(null);
+      this.traceTargetId_ = selectedBlockId;
+      this.traceDepth_ = 0;
+      this.tracedIncludeKeys_ = new Set();
+      this.tracedDefKeys_ = new Set();
+      this.tracedSetupKeys_ = new Set();
+
+      this.includes_ = createTrackedGeneratorMap(this, this.tracedIncludeKeys_);
+      this.definitions_ = createTrackedGeneratorMap(this, this.tracedDefKeys_);
+      this.setupCode_ = createTrackedGeneratorMap(this, this.tracedSetupKeys_);
       this.pioDeps_ = Object.create(null);
       this.userSetupBranch_ = '';
       this.userLoopBranch_ = '';
@@ -1641,6 +1959,45 @@ public:
           if (lib.pioDep) this.pioDeps_['curated_' + lib.id] = lib.pioDep;
         }
       });
+    };
+
+    /**
+     * Trace the selected block's own code and generated dependencies without affecting siblings
+     */
+    const _baseBlockToCode = ArduinoGenerator.blockToCode.bind(ArduinoGenerator);
+    ArduinoGenerator.blockToCode = function(block, opt_thisOnly) {
+      if (!block || block.isInsertionMarker() || block.id !== this.traceTargetId_ || block.type === 'arduino_setup_loop') {
+        return _baseBlockToCode(block, opt_thisOnly);
+      }
+
+      this.traceDepth_++;
+      let ownCode;
+      try {
+        ownCode = _baseBlockToCode(block, true);
+      } finally {
+        this.traceDepth_--;
+      }
+
+      if (Array.isArray(ownCode)) {
+        return [`${TRACE_START}${ownCode[0]}${TRACE_END}`, ownCode[1]];
+      }
+
+      let wrapped = ownCode;
+      if (typeof ownCode === 'string' && ownCode.length > 0) {
+        // Place TRACE_END before trailing newline so next indented sibling line never gets highlighted
+        const trailingNewlines = ownCode.match(/\n+$/);
+        if (trailingNewlines) {
+          const inner = ownCode.slice(0, ownCode.length - trailingNewlines[0].length);
+          wrapped = inner ? `${TRACE_START}${inner}${TRACE_END}${trailingNewlines[0]}` : ownCode;
+        } else {
+          wrapped = `${TRACE_START}${ownCode}${TRACE_END}`;
+        }
+      }
+
+      if (!opt_thisOnly && typeof wrapped === 'string') {
+        wrapped = this.scrub_(block, wrapped, false);
+      }
+      return wrapped;
     };
 
     /**
@@ -1659,11 +2016,19 @@ public:
      */
     ArduinoGenerator.finish = function(code) {
       const board = getActiveBoardProfile();
+      const wrapTraced = (mapObj, tracedSet) => Object.entries(mapObj).map(([k, v]) => (
+        tracedSet && tracedSet.has(k) && v ? `${TRACE_START}${v}${TRACE_END}` : v
+      ));
+
       const includesList = Object.values(this.includes_);
       const defsList = Object.values(this.definitions_);
       const autoSetupList = Object.values(this.setupCode_);
 
-      // Update Resource Inspector UI in real time
+      const tracedIncludes = wrapTraced(this.includes_, this.tracedIncludeKeys_);
+      const tracedDefs = wrapTraced(this.definitions_, this.tracedDefKeys_);
+      const tracedSetup = wrapTraced(this.setupCode_, this.tracedSetupKeys_);
+
+      // Update Resource Inspector UI in real time (clean values, no trace markers)
       updateResourceInspector(includesList, autoSetupList, defsList);
 
       let header = `// ============================================================\n`;
@@ -1672,21 +2037,21 @@ public:
       header += `// Architecture : ${board.mcu} (${board.voltage} Logic · ${board.adcBits}-bit ADC)\n`;
       header += `// ============================================================\n\n`;
 
-      if (includesList.length > 0) {
+      if (tracedIncludes.length > 0) {
         header += `// --- Included Libraries ---\n`;
-        header += includesList.join('\n') + '\n\n';
+        header += tracedIncludes.join('\n') + '\n\n';
       }
 
-      if (defsList.length > 0) {
+      if (tracedDefs.length > 0) {
         header += `// --- Global Definitions, Pins & Helper Functions ---\n`;
-        header += defsList.join('\n') + '\n\n';
+        header += tracedDefs.join('\n') + '\n\n';
       }
 
       // Build void setup()
       let setupBody = '';
-      if (autoSetupList.length > 0) {
+      if (tracedSetup.length > 0) {
         setupBody += `  // Auto-configured hardware & library setup\n`;
-        setupBody += autoSetupList.map(line => '  ' + line).join('\n') + '\n';
+        setupBody += tracedSetup.map(line => this.prefixLines(line, '  ').replace(/\n$/, '')).join('\n') + '\n';
       }
       if (this.userSetupBranch_ && this.userSetupBranch_.trim() !== '') {
         if (setupBody) setupBody += '\n  // User setup blocks\n';
@@ -1732,7 +2097,7 @@ public:
         this.appendStatementInput("LOOP")
             .setCheck(null)
             .appendField("void loop()   [Runs Forever]");
-        this.setColour('#00979D');
+        this.setColour('#1E6F73');
         this.setTooltip("Main root container for Arduino setup() and loop() functions.");
       }
     };
@@ -1750,7 +2115,7 @@ public:
             .appendField(new Blockly.FieldTextInput("Note"), "TEXT");
         this.setPreviousStatement(true, null);
         this.setNextStatement(true, null);
-        this.setColour('#00979D');
+        this.setColour('#1E6F73');
       }
     };
 
@@ -1766,7 +2131,7 @@ public:
             .appendField(new Blockly.FieldTextInput("// custom code;"), "CODE");
         this.setPreviousStatement(true, null);
         this.setNextStatement(true, null);
-        this.setColour('#00979D');
+        this.setColour('#1E6F73');
       }
     };
 
@@ -1780,7 +2145,7 @@ public:
             .appendField("⚡ C++ Expr:")
             .appendField(new Blockly.FieldTextInput("analogRead(A0) * (5.0 / 1023.0)"), "EXPR");
         this.setOutput(true, null);
-        this.setColour('#00979D');
+        this.setColour('#1E6F73');
         this.setTooltip("Embed any arbitrary C++ expression as a value block.");
       }
     };
@@ -1796,7 +2161,7 @@ public:
             .appendField(new Blockly.FieldTextInput("#define DEBUG_MODE 1"), "CODE");
         this.setPreviousStatement(true, null);
         this.setNextStatement(true, null);
-        this.setColour('#00979D');
+        this.setColour('#1E6F73');
         this.setTooltip("Injects any custom macro, #define, or global C++ code above setup().");
       }
     };
@@ -1827,7 +2192,7 @@ public:
             .appendField("ISR Code (Keep Fast & Non-Blocking):");
         this.setPreviousStatement(true, null);
         this.setNextStatement(true, null);
-        this.setColour('#E11D48');
+        this.setColour('#8F4852');
         this.setTooltip("Attaches a hardware interrupt via digitalPinToInterrupt(pin). Automatically adds IRAM_ATTR on ESP32/ESP8266!");
       }
     };
@@ -1859,7 +2224,7 @@ ${branch}}`;
             .appendField(new Blockly.FieldDropdown(getBoardInterruptPins), "PIN");
         this.setPreviousStatement(true, null);
         this.setNextStatement(true, null);
-        this.setColour('#E11D48');
+        this.setColour('#8F4852');
       }
     };
 
@@ -1878,7 +2243,7 @@ ${branch}}`;
             ]), "ACTION");
         this.setPreviousStatement(true, null);
         this.setNextStatement(true, null);
-        this.setColour('#E11D48');
+        this.setColour('#8F4852');
         this.setTooltip("Use noInterrupts() and interrupts() around critical sections when reading volatile variables.");
       }
     };
@@ -1897,7 +2262,7 @@ ${branch}}`;
             .appendField("=");
         this.setPreviousStatement(true, null);
         this.setNextStatement(true, null);
-        this.setColour('#E11D48');
+        this.setColour('#8F4852');
         this.setTooltip("Variables shared between an Interrupt Service Routine (ISR) and loop() MUST be declared volatile.");
       }
     };
@@ -1924,7 +2289,7 @@ ${branch}}`;
             .appendField("do:");
         this.setPreviousStatement(true, null);
         this.setNextStatement(true, null);
-        this.setColour('#D946EF');
+        this.setColour('#6A5B8C');
       }
     };
 
@@ -1954,7 +2319,7 @@ ${body}}`;
             .appendField("return:");
         this.setPreviousStatement(true, null);
         this.setNextStatement(true, null);
-        this.setColour('#D946EF');
+        this.setColour('#6A5B8C');
       }
     };
 
@@ -1981,7 +2346,7 @@ ${body}  return ${retVal};
             .appendField(");");
         this.setPreviousStatement(true, null);
         this.setNextStatement(true, null);
-        this.setColour('#D946EF');
+        this.setColour('#6A5B8C');
       }
     };
 
@@ -2000,7 +2365,7 @@ ${body}  return ${retVal};
             .appendField(new Blockly.FieldTextInput("12.5, 18.0"), "ARGS")
             .appendField(")");
         this.setOutput(true, null);
-        this.setColour('#D946EF');
+        this.setColour('#6A5B8C');
       }
     };
 
@@ -2016,7 +2381,7 @@ ${body}  return ${retVal};
             .appendField("🛠️ return");
         this.setPreviousStatement(true, null);
         this.setNextStatement(true, null);
-        this.setColour('#D946EF');
+        this.setColour('#6A5B8C');
       }
     };
 
@@ -2034,7 +2399,7 @@ ${body}  return ${retVal};
             .appendField(new Blockly.FieldTextInput("Wire.h"), "HEADER");
         this.setPreviousStatement(true, null);
         this.setNextStatement(true, null);
-        this.setColour('#9333EA');
+        this.setColour('#56618F');
         this.setTooltip("Injects any custom #include <Library.h> at the top of the sketch.");
       }
     };
@@ -2054,7 +2419,7 @@ ${body}  return ${retVal};
             .appendField(new Blockly.FieldTextInput("LiquidCrystal_I2C lcd(0x27, 16, 2);"), "DECL");
         this.setPreviousStatement(true, null);
         this.setNextStatement(true, null);
-        this.setColour('#9333EA');
+        this.setColour('#56618F');
         this.setTooltip("Declares a global class instance or struct above void setup().");
       }
     };
@@ -2072,7 +2437,7 @@ ${body}  return ${retVal};
             .appendField(new Blockly.FieldTextInput("lcd.init(); lcd.backlight();"), "INIT_CODE");
         this.setPreviousStatement(true, null);
         this.setNextStatement(true, null);
-        this.setColour('#9333EA');
+        this.setColour('#56618F');
       }
     };
 
@@ -2089,7 +2454,7 @@ ${body}  return ${retVal};
             .appendField(new Blockly.FieldDropdown(getAllImportedLibraryMethodsDropdown), "LIB_METHOD");
         this.setPreviousStatement(true, null);
         this.setNextStatement(true, null);
-        this.setColour('#9333EA');
+        this.setColour('#56618F');
         this.setTooltip("Automatically includes the imported .h header, declares its global object, runs its setup() init, and executes the selected method.");
       }
     };
@@ -2143,7 +2508,7 @@ ${body}  return ${retVal};
             .appendField("📚 read imported library value")
             .appendField(new Blockly.FieldDropdown(getAllImportedLibraryMethodsDropdown), "LIB_METHOD");
         this.setOutput(true, null);
-        this.setColour('#9333EA');
+        this.setColour('#56618F');
         this.setTooltip("Reads a sensor/return value from an imported .h library and automatically injects its #include, global object, and setup() code.");
       }
     };
@@ -2167,7 +2532,7 @@ ${body}  return ${retVal};
         this.setInputsInline(true);
         this.setPreviousStatement(true, null);
         this.setNextStatement(true, null);
-        this.setColour('#9333EA');
+        this.setColour('#56618F');
       }
     };
 
@@ -2184,7 +2549,7 @@ ${body}  return ${retVal};
             .appendField("📚 library value:")
             .appendField(new Blockly.FieldTextInput("mpu.getAccelerationX()"), "EXPR");
         this.setOutput(true, null);
-        this.setColour('#9333EA');
+        this.setColour('#56618F');
       }
     };
 
@@ -2203,7 +2568,7 @@ ${body}  return ${retVal};
             .appendField(new Blockly.FieldDropdown([["ON (HIGH)", "HIGH"], ["OFF (LOW)", "LOW"]]), "STATE");
         this.setPreviousStatement(true, null);
         this.setNextStatement(true, null);
-        this.setColour('#D97706');
+        this.setColour('#876A45');
       }
     };
 
@@ -2224,7 +2589,7 @@ ${body}  return ${retVal};
             .appendField(new Blockly.FieldDropdown(getOutputComponentDropdown), "COMP");
         this.setPreviousStatement(true, null);
         this.setNextStatement(true, null);
-        this.setColour('#D97706');
+        this.setColour('#876A45');
       }
     };
 
@@ -2244,7 +2609,7 @@ ${body}  return ${retVal};
             .appendField(new Blockly.FieldDropdown(getInputComponentDropdown), "COMP")
             .appendField("pressed?");
         this.setOutput(true, 'Boolean');
-        this.setColour('#D97706');
+        this.setColour('#876A45');
       }
     };
 
@@ -2267,7 +2632,7 @@ ${body}  return ${retVal};
             .appendField(new Blockly.FieldDropdown([["HIGH", "HIGH"], ["LOW", "LOW"]]), "STATE");
         this.setPreviousStatement(true, null);
         this.setNextStatement(true, null);
-        this.setColour('#0284C7');
+        this.setColour('#2C698A');
       }
     };
 
@@ -2286,7 +2651,7 @@ ${body}  return ${retVal};
             .appendField("Pull-up:")
             .appendField(new Blockly.FieldCheckbox("FALSE"), "PULLUP");
         this.setOutput(true, ['Number', 'Boolean']);
-        this.setColour('#0284C7');
+        this.setColour('#2C698A');
       }
     };
 
@@ -2303,7 +2668,7 @@ ${body}  return ${retVal};
             .appendField("📊 analogRead Pin")
             .appendField(new Blockly.FieldDropdown(getBoardAnalogPins), "PIN");
         this.setOutput(true, 'Number');
-        this.setColour('#0284C7');
+        this.setColour('#2C698A');
       }
     };
 
@@ -2321,7 +2686,7 @@ ${body}  return ${retVal};
             .appendField("duty (0-255):");
         this.setPreviousStatement(true, null);
         this.setNextStatement(true, null);
-        this.setColour('#0284C7');
+        this.setColour('#2C698A');
       }
     };
 
@@ -2345,7 +2710,7 @@ ${body}  return ${retVal};
         this.setInputsInline(true);
         this.setPreviousStatement(true, null);
         this.setNextStatement(true, null);
-        this.setColour('#0284C7');
+        this.setColour('#2C698A');
       }
     };
 
@@ -2364,7 +2729,7 @@ ${body}  return ${retVal};
             .appendField(new Blockly.FieldDropdown(getBoardDigitalPins), "PIN");
         this.setPreviousStatement(true, null);
         this.setNextStatement(true, null);
-        this.setColour('#0284C7');
+        this.setColour('#2C698A');
       }
     };
 
@@ -2381,7 +2746,7 @@ ${body}  return ${retVal};
             .appendField("State:")
             .appendField(new Blockly.FieldDropdown([["HIGH", "HIGH"], ["LOW", "LOW"]]), "STATE");
         this.setOutput(true, 'Number');
-        this.setColour('#0284C7');
+        this.setColour('#2C698A');
       }
     };
 
@@ -2405,7 +2770,7 @@ ${body}  return ${retVal};
             .appendField("Byte:");
         this.setPreviousStatement(true, null);
         this.setNextStatement(true, null);
-        this.setColour('#0284C7');
+        this.setColour('#2C698A');
       }
     };
 
@@ -2428,7 +2793,7 @@ ${body}  return ${retVal};
             .appendField("Echo:")
             .appendField(new Blockly.FieldDropdown(getBoardDigitalPins), "ECHO");
         this.setOutput(true, 'Number');
-        this.setColour('#7C3AED');
+        this.setColour('#546182');
         this.setTooltip("Reads HC-SR04 ultrasonic sensor distance in centimeters and injects helper function.");
       }
     };
@@ -2460,7 +2825,7 @@ ${body}  return ${retVal};
             .appendField("to angle (0-180°):");
         this.setPreviousStatement(true, null);
         this.setNextStatement(true, null);
-        this.setColour('#7C3AED');
+        this.setColour('#546182');
       }
     };
 
@@ -2491,7 +2856,7 @@ ${body}  return ${retVal};
             .appendField("on Pin")
             .appendField(new Blockly.FieldDropdown(getBoardDigitalPins), "PIN");
         this.setOutput(true, 'Number');
-        this.setColour('#7C3AED');
+        this.setColour('#546182');
       }
     };
 
@@ -2520,7 +2885,7 @@ ${body}  return ${retVal};
               ["Gyro Z (getRotationZ)", "getRotationZ()"]
             ]), "AXIS");
         this.setOutput(true, 'Number');
-        this.setColour('#7C3AED');
+        this.setColour('#546182');
       }
     };
 
@@ -2545,7 +2910,7 @@ ${body}  return ${retVal};
         this.setInputsInline(true);
         this.setPreviousStatement(true, null);
         this.setNextStatement(true, null);
-        this.setColour('#7C3AED');
+        this.setColour('#546182');
       }
     };
 
@@ -2575,7 +2940,7 @@ ${body}  return ${retVal};
         this.setInputsInline(true);
         this.setPreviousStatement(true, null);
         this.setNextStatement(true, null);
-        this.setColour('#7C3AED');
+        this.setColour('#546182');
       }
     };
 
@@ -2610,7 +2975,7 @@ ${body}  return ${retVal};
             .appendField(new Blockly.FieldTextInput("secret123"), "PASS");
         this.setPreviousStatement(true, null);
         this.setNextStatement(true, null);
-        this.setColour('#0D9488');
+        this.setColour('#2B7273');
         this.setTooltip("Automatically selects <WiFi.h> on ESP32 or <ESP8266WiFi.h> on ESP8266.");
       }
     };
@@ -2646,7 +3011,7 @@ ${body}  return ${retVal};
             .appendField("Value:");
         this.setPreviousStatement(true, null);
         this.setNextStatement(true, null);
-        this.setColour('#0D9488');
+        this.setColour('#2B7273');
       }
     };
 
@@ -2670,7 +3035,7 @@ ${body}  return ${retVal};
             .appendField(new Blockly.FieldTextInput("http://api.thingspeak.com/update?api_key=XYZ&field1=100"), "URL");
         this.setPreviousStatement(true, null);
         this.setNextStatement(true, null);
-        this.setColour('#0D9488');
+        this.setColour('#2B7273');
       }
     };
 
@@ -2700,7 +3065,7 @@ ${body}  return ${retVal};
         this.setInputsInline(true);
         this.setPreviousStatement(true, null);
         this.setNextStatement(true, null);
-        this.setColour('#E1116A');
+        this.setColour('#7C576F');
       }
     };
 
@@ -2719,7 +3084,7 @@ ${body}  return ${retVal};
         this.setInputsInline(true);
         this.setPreviousStatement(true, null);
         this.setNextStatement(true, null);
-        this.setColour('#E1116A');
+        this.setColour('#7C576F');
       }
     };
 
@@ -2733,7 +3098,7 @@ ${body}  return ${retVal};
         this.appendDummyInput()
             .appendField("⏱️ millis() [Uptime in ms]");
         this.setOutput(true, 'Number');
-        this.setColour('#E1116A');
+        this.setColour('#7C576F');
       }
     };
 
@@ -2746,7 +3111,7 @@ ${body}  return ${retVal};
         this.appendDummyInput()
             .appendField("⏱️ micros() [Uptime in µs]");
         this.setOutput(true, 'Number');
-        this.setColour('#E1116A');
+        this.setColour('#7C576F');
       }
     };
 
@@ -2767,7 +3132,7 @@ ${body}  return ${retVal};
         this.setInputsInline(true);
         this.setPreviousStatement(true, null);
         this.setNextStatement(true, null);
-        this.setColour('#E1116A');
+        this.setColour('#7C576F');
         this.setTooltip("Executes code periodically using millis() without blocking other sensors or interrupts.");
       }
     };
@@ -2789,7 +3154,7 @@ ${body}  return ${retVal};
             .appendField(new Blockly.FieldDropdown([["println (New Line)", "println"], ["print (Same Line)", "print"]]), "NEWLINE");
         this.setPreviousStatement(true, null);
         this.setNextStatement(true, null);
-        this.setColour('#059669');
+        this.setColour('#37705E');
       }
     };
 
@@ -2806,7 +3171,7 @@ ${body}  return ${retVal};
         this.appendDummyInput()
             .appendField("🖥️ Serial.available() > 0");
         this.setOutput(true, 'Boolean');
-        this.setColour('#059669');
+        this.setColour('#37705E');
       }
     };
 
@@ -2821,7 +3186,7 @@ ${body}  return ${retVal};
         this.appendDummyInput()
             .appendField("🖥️ Serial.readStringUntil('\\n')");
         this.setOutput(true, 'String');
-        this.setColour('#059669');
+        this.setColour('#37705E');
       }
     };
 
@@ -2843,7 +3208,7 @@ ${body}  return ${retVal};
         this.setInputsInline(true);
         this.setPreviousStatement(true, null);
         this.setNextStatement(true, null);
-        this.setColour('#059669');
+        this.setColour('#37705E');
       }
     };
 
@@ -2867,7 +3232,7 @@ ${body}  return ${retVal};
         this.appendDummyInput().appendField(")");
         this.setInputsInline(true);
         this.setOutput(true, 'Number');
-        this.setColour('#059669');
+        this.setColour('#37705E');
       }
     };
 
@@ -2891,7 +3256,7 @@ ${body}  return ${retVal};
         this.setInputsInline(true);
         this.setPreviousStatement(true, null);
         this.setNextStatement(true, null);
-        this.setColour('#059669');
+        this.setColour('#37705E');
       }
     };
 
@@ -2911,7 +3276,7 @@ ${body}  return ${retVal};
         this.appendDummyInput().appendField(")");
         this.setInputsInline(true);
         this.setOutput(true, 'Number');
-        this.setColour('#059669');
+        this.setColour('#37705E');
       }
     };
 
@@ -2942,7 +3307,7 @@ ${body}  return ${retVal};
             .appendField("=");
         this.setPreviousStatement(true, null);
         this.setNextStatement(true, null);
-        this.setColour('#DB2777');
+        this.setColour('#7E5268');
       }
     };
 
@@ -2962,7 +3327,7 @@ ${body}  return ${retVal};
             .appendField("=");
         this.setPreviousStatement(true, null);
         this.setNextStatement(true, null);
-        this.setColour('#DB2777');
+        this.setColour('#7E5268');
       }
     };
 
@@ -2981,7 +3346,7 @@ ${body}  return ${retVal};
             .appendField("📦")
             .appendField(new Blockly.FieldTextInput("distanceCm"), "VAR");
         this.setOutput(true, null);
-        this.setColour('#DB2777');
+        this.setColour('#7E5268');
       }
     };
 
@@ -3003,7 +3368,7 @@ ${body}  return ${retVal};
             .appendField("};");
         this.setPreviousStatement(true, null);
         this.setNextStatement(true, null);
-        this.setColour('#DB2777');
+        this.setColour('#7E5268');
       }
     };
 
@@ -3026,7 +3391,7 @@ ${body}  return ${retVal};
         this.appendDummyInput().appendField("]");
         this.setInputsInline(true);
         this.setOutput(true, null);
-        this.setColour('#DB2777');
+        this.setColour('#7E5268');
       }
     };
 
@@ -3048,7 +3413,7 @@ ${body}  return ${retVal};
         this.setInputsInline(true);
         this.setPreviousStatement(true, null);
         this.setNextStatement(true, null);
-        this.setColour('#DB2777');
+        this.setColour('#7E5268');
       }
     };
 
@@ -3069,7 +3434,7 @@ ${body}  return ${retVal};
             .appendField("};");
         this.setPreviousStatement(true, null);
         this.setNextStatement(true, null);
-        this.setColour('#DB2777');
+        this.setColour('#7E5268');
       }
     };
 
@@ -3090,7 +3455,7 @@ ${body}  return ${retVal};
         this.appendDummyInput().appendField(")");
         this.setInputsInline(true);
         this.setOutput(true, "Number");
-        this.setColour('#2563EB');
+        this.setColour('#3A648F');
       }
     };
 
@@ -3111,7 +3476,7 @@ ${body}  return ${retVal};
         this.appendDummyInput().appendField(")");
         this.setInputsInline(true);
         this.setOutput(true, "Number");
-        this.setColour('#2563EB');
+        this.setColour('#3A648F');
       }
     };
 
@@ -3129,7 +3494,7 @@ ${body}  return ${retVal};
         this.appendDummyInput().appendField(")");
         this.setInputsInline(true);
         this.setOutput(true, "Number");
-        this.setColour('#2563EB');
+        this.setColour('#3A648F');
       }
     };
 
@@ -3145,7 +3510,7 @@ ${body}  return ${retVal};
             .appendField("🧮 cast to")
             .appendField(new Blockly.FieldDropdown([["(float)", "float"], ["(int)", "int"], ["(long)", "long"], ["(byte)", "byte"], ["String(...)", "String"]]), "TYPE");
         this.setOutput(true, null);
-        this.setColour('#2563EB');
+        this.setColour('#3A648F');
       }
     };
 
@@ -3171,7 +3536,7 @@ ${body}  return ${retVal};
         this.appendValueInput("B").setCheck("Number");
         this.setInputsInline(true);
         this.setOutput(true, "Number");
-        this.setColour('#4F46E5');
+        this.setColour('#485A87');
       }
     };
 
@@ -3196,7 +3561,7 @@ ${body}  return ${retVal};
         this.appendValueInput("N").setCheck("Number").appendField("bit:");
         this.setInputsInline(true);
         this.setOutput(true, "Number");
-        this.setColour('#4F46E5');
+        this.setColour('#485A87');
       }
     };
 
@@ -3228,7 +3593,7 @@ ${body}  return ${retVal};
         this.setInputsInline(true);
         this.setPreviousStatement(true, null);
         this.setNextStatement(true, null);
-        this.setColour('#4F46E5');
+        this.setColour('#485A87');
       }
     };
 
@@ -3257,7 +3622,7 @@ ${body}  return ${retVal};
         this.setInputsInline(true);
         this.setPreviousStatement(true, null);
         this.setNextStatement(true, null);
-        this.setColour('#10B981');
+        this.setColour('#3A755B');
       }
     };
 
@@ -3277,7 +3642,7 @@ ${body}  return ${retVal};
             .appendField(new Blockly.FieldDropdown([["break;", "break"], ["continue;", "continue"]]), "STAT");
         this.setPreviousStatement(true, null);
         this.setNextStatement(true, null);
-        this.setColour('#10B981');
+        this.setColour('#3A755B');
       }
     };
 
@@ -3700,8 +4065,8 @@ ${body}  return ${retVal};
       const board = getActiveBoardProfile();
       const deps = Object.values(ArduinoGenerator.pioDeps_ || {});
       customImportedLibraries.forEach(cLib => {
-        const baseName = cLib.header.replace('.h', '');
-        if (!deps.includes(baseName)) deps.push(baseName);
+        const baseName = cLib.pioDep || cLib.header.replace(/\.(h|hpp)$/i, '');
+        if (baseName && !deps.includes(baseName)) deps.push(baseName);
       });
 
       let ini = `; ============================================================\n`;
@@ -3728,11 +4093,11 @@ ${body}  return ${retVal};
       const btnIno = document.getElementById('tabBtnIno');
       const btnPio = document.getElementById('tabBtnPio');
       if (tab === 'ino') {
-        btnIno.className = 'px-2.5 py-1 rounded-md bg-teal-500/15 text-teal-300 border border-teal-500/30 font-mono text-xs font-semibold flex items-center gap-1.5 transition';
-        btnPio.className = 'px-2.5 py-1 rounded-md bg-slate-800/70 hover:bg-slate-800 text-slate-400 font-mono text-xs font-medium flex items-center gap-1.5 transition';
+        btnIno.className = 'px-2 py-1 rounded-md bg-teal-950/50 text-teal-300 border border-teal-700/40 font-mono text-[11px] font-medium flex items-center gap-1.5 transition whitespace-nowrap shrink-0';
+        btnPio.className = 'px-2 py-1 rounded-md bg-[#161d27] hover:bg-[#1e2734] text-slate-400 border border-transparent font-mono text-[11px] font-medium flex items-center gap-1.5 transition whitespace-nowrap shrink-0';
       } else {
-        btnPio.className = 'px-2.5 py-1 rounded-md bg-purple-500/15 text-purple-300 border border-purple-500/30 font-mono text-xs font-semibold flex items-center gap-1.5 transition';
-        btnIno.className = 'px-2.5 py-1 rounded-md bg-slate-800/70 hover:bg-slate-800 text-slate-400 font-mono text-xs font-medium flex items-center gap-1.5 transition';
+        btnPio.className = 'px-2 py-1 rounded-md bg-teal-950/50 text-teal-300 border border-teal-700/40 font-mono text-[11px] font-medium flex items-center gap-1.5 transition whitespace-nowrap shrink-0';
+        btnIno.className = 'px-2 py-1 rounded-md bg-[#161d27] hover:bg-[#1e2734] text-slate-400 border border-transparent font-mono text-[11px] font-medium flex items-center gap-1.5 transition whitespace-nowrap shrink-0';
       }
       updateArduinoCode();
     }
@@ -3752,11 +4117,15 @@ ${body}  return ${retVal};
         return id;
       };
 
-      // Comments (C++ // and /* */ for .ino, or ; only for platformio.ini)
+      // Comments (split multiline /* */ per line so line splitting keeps balanced <span> tags)
       if (activeCodeTab === 'pio') {
         html = html.replace(/(;.*$)/gm, m => saveToken(m, 'tok-comment'));
       } else {
-        html = html.replace(/(\/\*[\s\S]*?\*\/|\/\/.*$)/gm, m => saveToken(m, 'tok-comment'));
+        html = html.replace(/(\/\*[\s\S]*?\*\/|\/\/.*$)/gm, m => (
+          m.includes('\n')
+            ? m.split('\n').map(part => saveToken(part, 'tok-comment')).join('\n')
+            : saveToken(m, 'tok-comment')
+        ));
       }
       // Preprocessor #include
       html = html.replace(/^#include\s+(&lt;[^&]+&gt;|"[^"]+")/gm, m => saveToken(m, 'tok-directive'));
@@ -3778,21 +4147,100 @@ ${body}  return ${retVal};
       return html;
     }
 
+    function extractTraceLines(markedCode) {
+      const cleanLines = [];
+      const matchedLineSet = new Set();
+      let traceDepth = 0;
+
+      String(markedCode || '').split('\n').forEach((line, idx) => {
+        let cleanLine = '';
+        let lineHasTracedContent = false;
+
+        for (let i = 0; i < line.length; i++) {
+          const ch = line[i];
+          if (ch === TRACE_START) {
+            traceDepth++;
+          } else if (ch === TRACE_END) {
+            if (traceDepth > 0) traceDepth--;
+          } else {
+            cleanLine += ch;
+            if (traceDepth > 0 && /\S/.test(ch)) lineHasTracedContent = true;
+          }
+        }
+
+        if (lineHasTracedContent) {
+          matchedLineSet.add(idx + 1);
+        }
+        cleanLines.push(cleanLine);
+      });
+
+      return {
+        cleanCode: cleanLines.join('\n'),
+        matchedLines: Array.from(matchedLineSet)
+      };
+    }
+
+    function scrollCodeToLine(lineNumber) {
+      const el = document.querySelector(`#arduinoCodeOutput .code-line[data-line="${lineNumber}"]`);
+      if (el) {
+        el.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+      }
+    }
+
+    function cycleTracedLineJump() {
+      if (!currentTracedLines || currentTracedLines.length === 0) return;
+      traceJumpCursor = (traceJumpCursor + 1) % currentTracedLines.length;
+      scrollCodeToLine(currentTracedLines[traceJumpCursor]);
+    }
+
     let currentRawCode = '';
     let currentPioCode = '';
 
-    function updateArduinoCode() {
+    function updateArduinoCode(scrollToSelection = false) {
       if (!workspace) return;
       try {
-        currentRawCode = ArduinoGenerator.workspaceToCode(workspace);
+        const markedCode = ArduinoGenerator.workspaceToCode(workspace);
+        const { cleanCode, matchedLines } = extractTraceLines(markedCode);
+        currentRawCode = cleanCode;
         currentPioCode = generatePlatformioIni();
 
         const displayedCode = activeCodeTab === 'ino' ? currentRawCode : currentPioCode;
-        const codeEl = document.getElementById('arduinoCodeOutput');
-        codeEl.innerHTML = highlightCpp(displayedCode);
+        const activeLineSet = activeCodeTab === 'ino' ? new Set(matchedLines) : new Set();
+        currentTracedLines = activeCodeTab === 'ino' ? matchedLines : [];
+        traceJumpCursor = 0;
 
-        const lineCount = displayedCode.split('\n').length;
-        document.getElementById('lineCountBadge').textContent = `${lineCount} lines`;
+        const highlightedHtmlLines = highlightCpp(displayedCode).split('\n');
+        const codeEl = document.getElementById('arduinoCodeOutput');
+        codeEl.innerHTML = highlightedHtmlLines.map((lineHtml, idx) => {
+          const lineNum = idx + 1;
+          const activeClass = activeLineSet.has(lineNum) ? ' code-line-active' : '';
+          return `<div class="code-line${activeClass}" data-line="${lineNum}"><span class="code-gutter">${lineNum}</span><span class="code-content">${lineHtml || ' '}</span></div>`;
+        }).join('');
+
+        const traceBadge = document.getElementById('blockTraceBadge');
+        if (traceBadge) {
+          if (activeCodeTab === 'ino' && selectedBlockId && matchedLines.length > 0) {
+            const summary = matchedLines.length === 1
+              ? `Line ${matchedLines[0]}`
+              : `${matchedLines.length} lines (L${matchedLines[0]}..)`;
+            traceBadge.innerHTML = `<i class="fa-solid fa-crosshairs mr-1"></i>${summary}`;
+            traceBadge.classList.remove('hidden');
+          } else {
+            traceBadge.classList.add('hidden');
+          }
+        }
+
+        if (scrollToSelection && activeCodeTab === 'ino' && matchedLines.length > 0) {
+          // Prefer scrolling to the body usage inside setup()/loop() rather than top #includes if both matched
+          const rawLines = cleanCode.split('\n');
+          const setupLineIdx = rawLines.findIndex(l => l.startsWith('void setup()'));
+          const preferredLine = matchedLines.find(ln => ln > setupLineIdx + 1) || matchedLines[0];
+          const prefIdx = matchedLines.indexOf(preferredLine);
+          if (prefIdx >= 0) traceJumpCursor = prefIdx;
+          scrollCodeToLine(preferredLine);
+        }
+
+        document.getElementById('lineCountBadge').textContent = `${highlightedHtmlLines.length} lines`;
       } catch (err) {
         console.error('Code generation error:', err);
       }
@@ -4136,20 +4584,29 @@ ${body}  return ${retVal};
       renderLibraryManagerUI();
       updateBoardBadgeUI();
 
-      // Create custom dark theme for Blockly
+      // Create calm studio dark theme for Blockly (includes muted built-in block styles)
       const arduinoDarkTheme = Blockly.Theme.defineTheme('arduinoDark', {
         'base': Blockly.Themes.Classic,
+        'blockStyles': {
+          'logic_blocks': { 'colourPrimary': '#485A87', 'colourSecondary': '#39486D', 'colourTertiary': '#5E72A3' },
+          'loop_blocks': { 'colourPrimary': '#3A755B', 'colourSecondary': '#2D5C47', 'colourTertiary': '#4B9172' },
+          'math_blocks': { 'colourPrimary': '#3A648F', 'colourSecondary': '#2D4F72', 'colourTertiary': '#4B7CAE' },
+          'text_blocks': { 'colourPrimary': '#37705E', 'colourSecondary': '#2A5749', 'colourTertiary': '#488E78' },
+          'list_blocks': { 'colourPrimary': '#546182', 'colourSecondary': '#414C66', 'colourTertiary': '#6B7BA1' },
+          'variable_blocks': { 'colourPrimary': '#7E5268', 'colourSecondary': '#634051', 'colourTertiary': '#996680' },
+          'procedure_blocks': { 'colourPrimary': '#6A5B8C', 'colourSecondary': '#53476E', 'colourTertiary': '#8372AA' }
+        },
         'componentStyles': {
-          'workspaceBackgroundColour': '#0b1120',
-          'toolboxBackgroundColour': '#111827',
-          'toolboxForegroundColour': '#f3f4f6',
-          'flyoutBackgroundColour': '#1e293b',
+          'workspaceBackgroundColour': '#0b0f14',
+          'toolboxBackgroundColour': '#10151d',
+          'toolboxForegroundColour': '#dbe3ed',
+          'flyoutBackgroundColour': '#141b24',
           'flyoutForegroundColour': '#cbd5e1',
-          'flyoutOpacity': 0.96,
-          'scrollbarColour': '#334155',
+          'flyoutOpacity': 0.97,
+          'scrollbarColour': '#253040',
           'insertionMarkerColour': '#2dd4bf',
-          'insertionMarkerOpacity': 0.4,
-          'scrollbarOpacity': 0.6,
+          'insertionMarkerOpacity': 0.35,
+          'scrollbarOpacity': 0.65,
           'cursorColour': '#2dd4bf'
         }
       });
@@ -4157,12 +4614,13 @@ ${body}  return ${retVal};
       const blocklyDiv = document.getElementById('blocklyDiv');
       workspace = Blockly.inject(blocklyDiv, {
         toolbox: document.getElementById('toolbox'),
+        media: 'https://unpkg.com/blockly@10.4.3/media/',
         theme: arduinoDarkTheme,
         renderer: 'zelos', // Scratch / MIT App Inventor smooth rounded block style
         grid: {
           spacing: 24,
-          length: 3,
-          colour: '#1e293b',
+          length: 2,
+          colour: '#19212c',
           snap: true
         },
         zoom: {
@@ -4181,9 +4639,17 @@ ${body}  return ${retVal};
         }
       });
 
-      // Listen to any block change to regenerate Arduino C++ code & autosave live
+      // Listen to workspace changes & block selection to regenerate + trace matching C++ lines live
       workspace.addChangeListener((event) => {
-        updateArduinoCode();
+        if (event.type === Blockly.Events.SELECTED) {
+          selectedBlockId = event.newElementId || null;
+          updateArduinoCode(true);
+          return;
+        }
+        if (event.type === Blockly.Events.BLOCK_DELETE && selectedBlockId === event.blockId) {
+          selectedBlockId = null;
+        }
+        updateArduinoCode(false);
         if (!event.isUiEvent) saveStateToLocalStorage();
       });
 
@@ -4192,9 +4658,9 @@ ${body}  return ${retVal};
       workspace.registerToolboxCategoryCallback('CUSTOM_LIBRARIES_FLYOUT', function(targetWorkspace) {
         const xmlList = [];
 
-        // 1. Button at top of flyout to open Library Manager / .h Importer
+        // 1. Button at top of flyout to open Library Manager / .zip & .h Importer
         const btn = document.createElement('button');
-        btn.setAttribute('text', '➕ Open Library Manager / Import .h Header...');
+        btn.setAttribute('text', '➕ Import .zip / .h Library...');
         btn.setAttribute('callbackKey', 'OPEN_LIB_MANAGER_BTN');
         xmlList.push(btn);
 

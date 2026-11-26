@@ -26,7 +26,8 @@ Drag-and-drop visual blocks on the left, inspect real-time syntax-highlighted `.
 | Feature | Details |
 |---|---|
 | 🎛️ **6 Target Board Profiles** | Dynamic pinouts, ADC bit-depth, ISR `IRAM_ATTR`, `EEPROM` dialect, and headers for **Arduino Uno/Nano**, **Mega 2560**, **ESP32 DevKit V1**, **ESP8266 NodeMCU**, **Seeed XIAO nRF52840**, and **Raspberry Pi Pico (RP2040)**. |
-| 📚 **Library Manager & `.h` Importer** | One-click curated libraries (`Wire`, `SPI`, `LiquidCrystal_I2C`, `MPU6050`, `VL53L0X`, `MFRC522`, `RF24`, `PubSubClient`, `MAX30105`) plus a built-in **C++ `.h` class parser** that turns third-party headers into draggable Action & Value blocks. |
+| 📚 **Library Manager & `.zip` / `.h` Importer** | One-click curated libraries (`Wire`, `SPI`, `LiquidCrystal_I2C`, `MPU6050`, `VL53L0X`, `MFRC522`, `RF24`, `PubSubClient`, `MAX30105`), client-side Arduino **`.zip` library uploader** (reads `library.properties` & `src/*.h`), and a **C++ `.h` class parser** that turns third-party headers into draggable Action & Value blocks. |
+| 🔎 **Block-to-C++ Trace Highlighting** | Click any block in the workspace to highlight its generated `#include`, `setup()`, global helper, and `loop()` lines in real time inside the numbered C++ inspector. |
 | 🧩 **MIT App Inventor-Style Named Components** | Define named LEDs, Relays, Buzzers, and Push Buttons mapped to active board pins with automatic `pinMode(...)` setup injection. |
 | ⚡ **Hardware Interrupts, Custom Functions & Non-Blocking Timers** | Dedicated blocks for `attachInterrupt()`, `volatile` variables, `noInterrupts()`/`interrupts()`, custom C++ functions, structs, arrays, and `millis()` timers. |
 | 💾 **Autosave & Shareable `.ablocks` Projects** | Automatic `localStorage` persistence across reloads, plus `.ablocks` Save/Open export, one-click `.ino` / `platformio.ini` download, and Undo/Redo. |
