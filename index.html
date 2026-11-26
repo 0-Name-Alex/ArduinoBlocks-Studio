@@ -73,6 +73,31 @@
       border-right: 1px solid #1e2734 !important;
       color: #cbd5e1 !important;
       padding-top: 6px !important;
+      scrollbar-width: thin;
+      scrollbar-color: #243040 #10151d;
+    }
+    .blocklyToolboxDiv::-webkit-scrollbar {
+      width: 6px;
+    }
+    .blocklyToolboxDiv::-webkit-scrollbar-track {
+      background: #10151d;
+    }
+    .blocklyToolboxDiv::-webkit-scrollbar-thumb {
+      background: #243040;
+      border-radius: 3px;
+    }
+    /* Prevent orphaned flyout scrollbar (svg:nth-of-type(7)) from floating over workspace */
+    .blocklyFlyout:not([style*="display: block"]) + .blocklyFlyoutScrollbar {
+      display: none !important;
+      visibility: hidden !important;
+      pointer-events: none !important;
+    }
+    .blocklyScrollbarHandle {
+      fill: #334155 !important;
+      fill-opacity: 0.45 !important;
+    }
+    .blocklyScrollbarHandle:hover {
+      fill-opacity: 0.75 !important;
     }
     .blocklyTreeRow {
       padding: 6px 12px !important;
@@ -165,10 +190,10 @@
     <!-- Center Controls: Board & Examples -->
     <div class="flex items-center gap-2">
       <!-- Board Selector -->
-      <div class="flex items-center bg-[#161d27] border border-[#253040] rounded-lg px-2.5 py-1.5 text-xs">
-        <i class="fa-solid fa-microchip text-slate-400 mr-2"></i>
+      <div class="flex items-center bg-[#161d27] border border-[#253040] rounded-lg px-2.5 py-1.5 text-xs shrink-0">
+        <i class="fa-solid fa-microchip text-slate-400 mr-2 shrink-0"></i>
         <span class="text-slate-500 mr-1.5 hidden xl:inline">Board:</span>
-        <select id="boardSelect" onchange="onBoardChange()" class="bg-transparent text-slate-200 font-medium focus:outline-none cursor-pointer">
+        <select id="boardSelect" onchange="onBoardChange()" class="bg-transparent text-slate-200 font-medium focus:outline-none cursor-pointer max-w-[160px] xl:max-w-[230px] truncate">
           <option value="uno" class="bg-[#10151d]">Arduino Uno / Nano (ATmega328P)</option>
           <option value="mega" class="bg-[#10151d]">Arduino Mega 2560 (ATmega2560)</option>
           <option value="esp32" class="bg-[#10151d]">ESP32 DevKit V1 (WiFi + BLE)</option>
@@ -179,10 +204,10 @@
       </div>
 
       <!-- Preset Examples Selector -->
-      <div class="flex items-center bg-[#161d27] border border-[#253040] rounded-lg px-2.5 py-1.5 text-xs">
-        <i class="fa-solid fa-sliders text-slate-400 mr-2"></i>
+      <div class="flex items-center bg-[#161d27] border border-[#253040] rounded-lg px-2.5 py-1.5 text-xs shrink-0">
+        <i class="fa-solid fa-sliders text-slate-400 mr-2 shrink-0"></i>
         <span class="text-slate-500 mr-1.5 hidden xl:inline">Preset:</span>
-        <select id="exampleSelect" onchange="loadSelectedExample(this.value)" class="bg-transparent text-slate-200 font-medium focus:outline-none cursor-pointer">
+        <select id="exampleSelect" onchange="loadSelectedExample(this.value)" class="bg-transparent text-slate-200 font-medium focus:outline-none cursor-pointer max-w-[155px] xl:max-w-[240px] truncate">
           <option value="radar" class="bg-[#10151d]">1. Ultrasonic Smart Gate + Servo</option>
           <option value="interrupt_demo" class="bg-[#10151d]">2. Hardware Interrupt (ISR) + Volatile Counter</option>
           <option value="esp32_iot" class="bg-[#10151d]">3. ESP32 WiFi + MQTT IoT Telemetry</option>
